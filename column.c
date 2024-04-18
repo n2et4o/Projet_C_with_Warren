@@ -129,7 +129,7 @@ void delete_column(COLUMN** col) {
     //printf("colonne supprimee\n");
 }
 
-// Création de la fonction print_col
+// ================= Création de la fonction print_col ======================
 void print_col(COLUMN* col) {
     if (col == NULL) {
         printf("Column is NULL\n");
@@ -162,13 +162,15 @@ int nb_occ(COLUMN* col, int x) {
 
 // ========= Création de la fonction qui retourner la valeur présente à la position x (x donné en paramètre) ======
 int pos_val(COLUMN* col, unsigned int x) {
-    // Vérifier si la position est valide
     if (x >= col->size) {
         printf("Position invalide\n");
         exit(EXIT_FAILURE);
     }
-    // Retourner la valeur à la position x
-    return col->data[x]->int_value;
+    if (col->data[x] != NULL) {
+        return *((int*)col->data[x]);
+    } else {
+        return -1;  // Retourner -1 ou autre valeur indicative si la position est NULL
+    }
 }
 
 int nb_val_supe(COLUMN* col, int x) {
