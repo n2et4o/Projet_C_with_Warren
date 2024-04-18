@@ -12,6 +12,6 @@ add_executable(Projet_C_with_Warren
         .idea/Projet_C_with_Warren.iml
         .idea/vcs.xml
         .idea/workspace.xml
-        CDataframe.c
-        CDataframe.h
+        column.c
+        column.h
         main.c)

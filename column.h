@@ -2,10 +2,11 @@
 // Created by 20220848 on 31/03/2024.
 //
 
-#ifndef PROJET_C_WITH_WARREN_CDATAFRAME_H
-#define PROJET_C_WITH_WARREN_CDATAFRAME_H
+#ifndef PROJET_C_WITH_WARREN_COLUMN_H
+#define PROJET_C_WITH_WARREN_COLUMN_H
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define REALOC_SIZE 256
 
 
@@ -42,7 +43,7 @@ typedef struct column COLUMN;
 * @param1 : Column title
 * @return : Pointer to created column
 */
-COLUMN *create_column(char* title);
+COLUMN* create_column(ENUM_TYPE type, char* title);
 
 /**
 * @brief : Add a new value to a column
@@ -50,7 +51,7 @@ COLUMN *create_column(char* title);
 * @param2 : The value to be added
 * @return : 1 if the value is added 0 otherwise
 */
-int insert_value(COLUMN* col, int value);
+int insert_value(COLUMN *col, void *value);
 
 /**
 * @brief : Free allocated memory
@@ -64,8 +65,20 @@ void delete_column(COLUMN **col);
 */
 void print_col(COLUMN* col);
 
+int nb_occ(COLUMN* col, int x);
+
+int pos_val(COLUMN* col, unsigned int x);
+
+int nb_val_supe(COLUMN* col, int x);
+
+int nb_val_inf(COLUMN* col, int x);
+
+int nb_val_egal(COLUMN* col, int x);
+
+void convert_value(COLUMN *col, unsigned long long int i, char *str, int size);
 
 
 
 
-#endif //PROJET_C_WITH_WARREN_CDATAFRAME_H
+
+#endif //PROJET_C_WITH_WARREN_COLUMN_H
