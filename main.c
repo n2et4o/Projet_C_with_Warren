@@ -22,8 +22,14 @@ int main(){
     insert_value(mycol, NULL);
     print_col(mycol);
 
-    int value = pos_val(mycol, 1);
-    printf("La valeur a la position 1 est : %d\n", value);
+    int value; int z = 2;
+    value = pos_val(mycol,z);
+    if (value != -1){
+        printf("La valeur a la position %d est : %d\n",z,value);
+    }
+    else{
+        printf("La valeur a la position %d est : NULL\n",z);
+    }
 
     int a = 52 ;
     int occ = nb_occ(mycol, a);
