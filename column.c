@@ -26,79 +26,76 @@ COLUMN* create_column(ENUM_TYPE type, char* title) {
 
 // ============= Création de la fonction insert_value ===============
 int insert_value(COLUMN *col, void *value) {
-    // Vérification si la colonne existe et que le pointeur value n'est pas NULL
-    if (col == NULL || value == NULL) {
+    if (col == NULL) {
         return 0;
     }
 
-    // Vérification de la disponibilité de l'espace physique
     if (col->size >= col->max_size) {
-        // Réallocation de mémoire pour augmenter la taille physique
-        col->max_size += REALOC_SIZE;
-        void **new_data = realloc(col->data, col->max_size * sizeof(void *));
+        int new_max_size = col->max_size + REALOC_SIZE;
+        void **new_data = realloc(col->data, new_max_size * sizeof(void *));
         if (new_data == NULL) {
-            return 0; // Échec de réallocation de mémoire
+            return 0;
         }
-        col->data = (COL_TYPE **) new_data;
+        col->data = new_data;
+        col->max_size = new_max_size;
     }
 
-    // Insertion de la valeur dans la colonne
-    switch (col->column_type) {
-        /*case NULLVAL:
-            col->data[col->size] = NULL;
-            printf("a");
-            break;*/
-        case UINT:
-            col->data[col->size] = malloc(sizeof(unsigned int));
-            if (col->data[col->size] == NULL) {
-                return 0; // Échec d'allocation de mémoire
-            }
-            *((unsigned int *)col->data[col->size]) = *((unsigned int *)value);
-            break;
-        case INT:
-            col->data[col->size] = malloc(sizeof(int));
-            if (col->data[col->size] == NULL) {
-                return 0; // Échec d'allocation de mémoire
-            }
-            *((int *)col->data[col->size]) = *((int *)value);
-            break;
-        case CHAR:
-            col->data[col->size] = malloc(sizeof(char));
-            if (col->data[col->size] == NULL) {
-                return 0; // Échec d'allocation de mémoire
-            }
-            *((char *)col->data[col->size]) = *((char *)value);
-            break;
-        case FLOAT:
-            col->data[col->size] = malloc(sizeof(float));
-            if (col->data[col->size] == NULL) {
-                return 0; // Échec d'allocation de mémoire
-            }
-            *((float *)col->data[col->size]) = *((float *)value);
-            break;
-        case DOUBLE:
-            col->data[col->size] = malloc(sizeof(double));
-            if (col->data[col->size] == NULL) {
-                return 0; // Échec d'allocation de mémoire
-            }
-            *((double *)col->data[col->size]) = *((double *)value);
-            break;
-        case STRING:
-            col->data[col->size] = malloc(strlen((char *)value) + 1);
-            if (col->data[col->size] == NULL) {
-                return 0; // Échec d'allocation de mémoire
-            }
-            strcpy((char *)col->data[col->size], (char *)value);
-            break;
-        case STRUCTURE:
-            // À compléter pour d'autres types de structure si nécessaire
-            break;
-        default:
-            return 0; // Type de colonne non pris en charge
+    // Spécialement pour gérer les valeurs NULL
+    if (value == NULL) {
+        col->data[col->size] = NULL;
+    } else {
+        switch (col->column_type) {
+            case UINT:
+                col->data[col->size] = malloc(sizeof(unsigned int));
+                if (col->data[col->size] == NULL) {
+                    return 0;
+                }
+                *((unsigned int *)col->data[col->size]) = *((unsigned int *)value);
+                break;
+            case INT:
+                col->data[col->size] = malloc(sizeof(int));
+                if (col->data[col->size] == NULL) {
+                    return 0;
+                }
+                *((int *)col->data[col->size]) = *((int *)value);
+                break;
+            case CHAR:
+                col->data[col->size] = malloc(sizeof(char));
+                if (col->data[col->size] == NULL) {
+                    return 0;
+                }
+                *((char *)col->data[col->size]) = *((char *)value);
+                break;
+            case FLOAT:
+                col->data[col->size] = malloc(sizeof(float));
+                if (col->data[col->size] == NULL) {
+                    return 0;
+                }
+                *((float *)col->data[col->size]) = *((float *)value);
+                break;
+            case DOUBLE:
+                col->data[col->size] = malloc(sizeof(double));
+                if (col->data[col->size] == NULL) {
+                    return 0;
+                }
+                *((double *)col->data[col->size]) = *((double *)value);
+                break;
+            case STRING:
+                col->data[col->size] = strdup((char *)value);
+                if (col->data[col->size] == NULL) {
+                    return 0;
+                }
+                break;
+            case STRUCTURE:
+                // À compléter selon la structure définie
+                break;
+            default:
+                return 0;
+        }
     }
 
-    col->size++; // Mise à jour de la taille logique de la colonne
-    return 1; // Insertion réussie
+    col->size++;
+    return 1;
 }
 
 // ============ Création de la fonction delete_column =============
