@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #define REALOC_SIZE 256
+#define ASC 0
+#define DESC 1
 
 
 enum enum_type
@@ -34,6 +36,8 @@ struct column {
     ENUM_TYPE column_type;
     COL_TYPE **data; // array of pointers to stored data
     unsigned long long int *index; // array of integers
+    int valid_index; // index validity flag
+    int sort_dir; // sorting direction flag
 };
 typedef struct column COLUMN;
 
@@ -65,17 +69,24 @@ void delete_column(COLUMN **col);
 */
 void print_col(COLUMN* col);
 
-int nb_occ(COLUMN* col, int x);
+void nb_occ(COLUMN* col, void* x);
 
-int pos_val(COLUMN* col, unsigned int x);
+void pos_val(COLUMN* col, unsigned int x);
 
-int nb_val_supe(COLUMN* col, int x);
+void nb_val_supe(COLUMN* col, void* x);
 
-int nb_val_inf(COLUMN* col, int x);
+void nb_val_inf(COLUMN* col, void* x);
 
-int nb_val_egal(COLUMN* col, int x);
+void nb_val_egal(COLUMN* col, void* x);
 
 void convert_value(COLUMN *col, unsigned long long int i, char *str, int size);
+
+void quicksort(unsigned long long *index, COL_TYPE **data, int left, int right, int sort_dir);
+void insertion_sort(unsigned long long *index, COL_TYPE **data, int size, int sort_dir);
+void sort(COLUMN* col, int sort_dir);
+void print_col_by_index(COLUMN *col);
+
+
 
 
 
