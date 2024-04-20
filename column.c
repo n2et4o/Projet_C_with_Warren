@@ -8,19 +8,29 @@
 COLUMN* create_column(ENUM_TYPE type, char* title) {
     COLUMN* new_column = (COLUMN*)malloc(sizeof(COLUMN));
     if (new_column == NULL) {
-        printf("Erreur d'allocation de mémoire\n");
-        exit(EXIT_FAILURE);
+        printf("Erreur d'allocation de memoire pour la nouvelle colonne\n");
+        return NULL;  // Retourner NULL en cas d'échec
     }
 
-    // Initialisation des attributs de la colonne
-    new_column->title = strdup(title); // Duplication du titre
-    new_column->size = 0; // Taille logique initiale à 0
-    new_column->max_size = 0; // Taille physique initiale
-    new_column->column_type = type; // Type de colonne initialisé à NULL
-    new_column->data = NULL; // Pointeur sur le tableau de données initialisé à NULL
-    new_column->index = NULL; // Pointeur sur le tableau d'index initialisé à NULL
+    new_column->title = strdup(title);
+    if (new_column->title == NULL) {
+        printf("Erreur d'allocation pour le titre\n");
+        free(new_column);
+        return NULL;
+    }
 
-    //printf("colonne cree");
+    new_column->size = 0;
+    new_column->max_size = 10;
+    new_column->column_type = type;
+    new_column->data = malloc(new_column->max_size * sizeof(void*));
+    if (new_column->data == NULL) {
+        printf("Erreur d'allocation pour les donnees\n");
+        free(new_column->title);
+        free(new_column);
+        return NULL;
+    }
+    new_column->index = NULL;
+
     return new_column;
 }
 
@@ -88,6 +98,12 @@ int insert_value(COLUMN *col, void *value) {
                 break;
             case STRUCTURE:
                 // À compléter selon la structure définie
+                col->data[col->size] = malloc(sizeof(MyStruct));  // Allocate memory for the structure
+                if (col->data[col->size] == NULL) {
+                    return 0;
+                }
+                memcpy(col->data[col->size], value, sizeof(MyStruct));  // Copy the structure
+
                 break;
             default:
                 return 0;
@@ -257,7 +273,7 @@ void pos_val(COLUMN* col, unsigned int x) {
     }
 }
 
-
+// ========= Création de la fonction qui retourner le nombre de valeurs qui sont supérieures à x (x donné en paramètre) =====
 void nb_val_supe(COLUMN* col, void* x) {
     if (col == NULL) {
         printf("Invalid column reference\n");
@@ -268,7 +284,7 @@ void nb_val_supe(COLUMN* col, void* x) {
     ENUM_TYPE type = col->column_type;
 
     if (x == NULL) {
-        // Counting all non-NULL entries if x is NULL
+        // Comptage de toutes les entrées non NULL si x est NULL
         for (unsigned int i = 0; i < col->size; i++) {
             if (col->data[i] != NULL) {
                 count++;
@@ -276,7 +292,7 @@ void nb_val_supe(COLUMN* col, void* x) {
         }
         printf("Le nombre de valeurs non-NULL est : %d\n", count);
     } else {
-        // Perform type-appropriate comparisons
+        // Effectuer des comparaisons appropriées au type
         for (unsigned int i = 0; i < col->size; i++) {
             if (col->data[i] != NULL) {
                 switch (type) {
@@ -292,7 +308,7 @@ void nb_val_supe(COLUMN* col, void* x) {
                     case UINT:
                         if (*((unsigned int*)(col->data[i])) > *((unsigned int*)x)) count++;
                         break;
-                    // Extend cases for other types if necessary
+                    // Étendre les cas à d'autres types si nécessaire
                     default:
                         printf("Type non supporté pour la comparaison\n");
                         return;
@@ -310,7 +326,7 @@ void nb_val_supe(COLUMN* col, void* x) {
     }
 }
 
-
+// ========= Création de la fonction qui retourner le nombre de valeurs qui sont inférieures à x (x donné en paramètre) ======
 void nb_val_inf(COLUMN* col, void* x) {
     if (col == NULL || x == NULL) {
         printf("Invalid input\n");
@@ -356,7 +372,7 @@ void nb_val_inf(COLUMN* col, void* x) {
     }
 }
 
-
+// ========= Création de la fonction qui retourner le nombre de valeurs qui sont égales à x (x donné en paramètre) ======
 void nb_val_egal(COLUMN* col, void* x) {
     if (col == NULL || x == NULL) {
         printf("Invalid input or comparison to NULL is not supported for non-pointer types\n");
@@ -404,35 +420,45 @@ void nb_val_egal(COLUMN* col, void* x) {
 }
 
 
-void convert_value(COLUMN *col, unsigned long long int i, char *str, int size) {
-    if (col == NULL || str == NULL || i >= col->size || size <= 0) {
+void convert_value(COLUMN* col, unsigned long long int i, char* str, int size) {
+    if (col == NULL || str == NULL || i >= col->size) {
+        snprintf(str, size, "%s", "ERROR");
+        return;
+    }
+
+    // Assurez-vous que la chaîne est nulle au départ pour éviter l'écriture de déchets
+    memset(str, 0, size);
+
+    if (col->data[i] == NULL) {
+        snprintf(str, size, "%s", "NULL");
         return;
     }
 
     switch(col->column_type) {
-        case NULLVAL:
-            snprintf(str, size, "%s", "NULL");
-            break;
         case UINT:
-            snprintf(str, size, "%u", *((unsigned int *)col->data[i]));
+            snprintf(str, size, "%u", *((unsigned int*)col->data[i]));
             break;
         case INT:
-            snprintf(str, size, "%d", *((int *)col->data[i]));
+            snprintf(str, size, "%d", *((int*)col->data[i]));
             break;
         case CHAR:
-            snprintf(str, size, "%c", *((char *)col->data[i]));
+            snprintf(str, size, "%c", *((char*)col->data[i]));
             break;
         case FLOAT:
-            snprintf(str, size, "%f", *((float *)col->data[i]));
+            // Pour les floats, vous pourriez vouloir contrôler la précision, par exemple "%.2f" pour deux décimales.
+            snprintf(str, size, "%f", *((float*)col->data[i]));
             break;
         case DOUBLE:
-            snprintf(str, size, "%lf", *((double *)col->data[i]));
+            // De même, "%.lf" pour les doubles avec une précision contrôlée si nécessaire.
+            snprintf(str, size, "%lf", *((double*)col->data[i]));
             break;
         case STRING:
-            snprintf(str, size, "%s", (char *)col->data[i]);
+            snprintf(str, size, "%s", (char*)col->data[i]);
             break;
         case STRUCTURE:
-            // À compléter pour les types de données structurées
+            // Vous devrez implémenter la logique de conversion de votre structure en chaîne ici.
+            // Par exemple, si vous avez une structure avec un entier et un flottant, vous pourriez faire :
+            // snprintf(str, size, "{int: %d, float: %f}", your_structure->int_field, your_structure->float_field);
             break;
         default:
             snprintf(str, size, "%s", "UNKNOWN TYPE");
@@ -440,90 +466,124 @@ void convert_value(COLUMN *col, unsigned long long int i, char *str, int size) {
     }
 }
 
-void sort(COLUMN* col, int sort_dir) {
-    if (col->valid_index == 0) {
-        // If index is not valid (column not sorted), use quicksort
-        quicksort(col->index, col->data, 0, col->size - 1, sort_dir);
-    } else if (col->valid_index == -1) {
-        // If index is partially valid, use insertion sort
-        insertion_sort(col->index, col->data, col->size, sort_dir);
-    }
+int compare(COLUMN *col, COL_TYPE *a, COL_TYPE *b) {
+    int sort_dir = col->sort_dir; // Direction of the sort stored in the COLUMN structure
+    char char_a, char_b;
 
-    col->sort_dir = sort_dir;
+    switch (col->column_type) {
+        case CHAR:
+            char_a = a->char_value;
+            char_b = b->char_value;
+            if (sort_dir == ASC)
+                return (char_a > char_b) - (char_a < char_b);
+            else
+                return (char_b > char_a) - (char_b < char_a);
+
+        case STRING:
+            char_a = a->string_value[0];
+            char_b = b->string_value[0];
+            if (sort_dir == ASC)
+                return (char_a > char_b) - (char_a < char_b);
+            else
+                return (char_b > char_a) - (char_b < char_a);
+
+        case INT:
+            if (sort_dir == ASC)
+                return (a->int_value > b->int_value) - (a->int_value < b->int_value);
+            else
+                return (b->int_value > a->int_value) - (b->int_value < a->int_value);
+
+        case FLOAT:
+            if (sort_dir == ASC)
+                return (a->float_value > b->float_value) ? 1 : (a->float_value < b->float_value) ? -1 : 0;
+            else
+                return (b->float_value > a->float_value) ? 1 : (b->float_value < a->float_value) ? -1 : 0;
+
+        case DOUBLE:
+            if (sort_dir == ASC)
+                return (a->double_value > b->double_value) ? 1 : (a->double_value < b->double_value) ? -1 : 0;
+            else
+                return (b->double_value > a->double_value) ? 1 : (b->double_value < a->double_value) ? -1 : 0;
+
+        default:
+            fprintf(stderr, "Unsupported data type for sorting.\n");
+            exit(EXIT_FAILURE);
+    }
 }
 
-// Quicksort implementation
-void quicksort(unsigned long long *index, COL_TYPE **data, int left, int right, int sort_dir) {
+
+void quicksort(COLUMN *col, int left, int right) {
+    int i, j;
+    COL_TYPE *pivot, *temp;
+
     if (left < right) {
-        int pivot_index = left;
-        unsigned long long pivot = index[right];
+        pivot = col->data[right];
+        i = (left - 1);
 
-        for (int i = left; i < right; i++) {
-            if ((sort_dir == ASC && index[i] < pivot) || (sort_dir == DESC && index[i] > pivot)) {
-                unsigned long long temp_index = index[i];
-                index[i] = index[pivot_index];
-                index[pivot_index] = temp_index;
-
-                COL_TYPE *temp_data = data[i];
-                data[i] = data[pivot_index];
-                data[pivot_index] = temp_data;
-
-                pivot_index++;
+        for (j = left; j < right; j++) {
+            if (compare(col, col->data[j], pivot) <= 0) {
+                i++;
+                temp = col->data[i];
+                col->data[i] = col->data[j];
+                col->data[j] = temp;
             }
         }
-
-        unsigned long long temp_index = index[right];
-        index[right] = index[pivot_index];
-        index[pivot_index] = temp_index;
-
-        COL_TYPE *temp_data = data[right];
-        data[right] = data[pivot_index];
-        data[pivot_index] = temp_data;
-
-        quicksort(index, data, left, pivot_index - 1, sort_dir);
-        quicksort(index, data, pivot_index + 1, right, sort_dir);
+        temp = col->data[i + 1];
+        col->data[i + 1] = col->data[right];
+        col->data[right] = temp;
+        quicksort(col, left, i);  // Corrected to i instead of i+1
+        quicksort(col, i + 1, right);  // Corrected to i+1 instead of i+2
     }
 }
 
-// Insertion sort implementation
-void insertion_sort(unsigned long long *index, COL_TYPE **data, int size, int sort_dir) {
+void insertion_sort(COLUMN *col) {
     int i, j;
-    unsigned long long key;
-    COL_TYPE *data_key;
+    COL_TYPE *key;
 
-    for (i = 1; i < size; i++) {
-        key = index[i];
-        data_key = data[i];
+    for (i = 1; i < col->size; i++) {
+        key = col->data[i];
         j = i - 1;
 
-        while (j >= 0 && ((sort_dir == ASC && index[j] > key) || (sort_dir == DESC && index[j] < key))) {
-            index[j + 1] = index[j];
-            data[j + 1] = data[j];
+        while (j >= 0 && compare(col, col->data[j], key) > 0) {
+            col->data[j + 1] = col->data[j];
             j = j - 1;
         }
-
-        index[j + 1] = key;
-        data[j + 1] = data_key;
+        col->data[j + 1] = key;
     }
+}
+
+
+
+void sort(COLUMN* col, int sort_dir) {
+    col->sort_dir = sort_dir;
+
+    if (col->valid_index == 0) {
+        quicksort(col, 0, col->size - 1);
+    } else if (col->valid_index == -1) {
+        insertion_sort(col);
+    }
+
+    col->valid_index = 1;  // Column is now fully sorted
 }
 
 void print_col_by_index(COLUMN *col) {
-    if (col->valid_index != 1) {
-        // L'index n'est pas valide, affichez un message d'erreur
-        printf("Error: Index is not valid.\n");
-        return;
-    }
-
-    // Afficher les valeurs selon l'ordre séquentiel de l'index
-    if (col->sort_dir == ASC) {
-        for (unsigned long long i = 0; i < col->size; i++) {
-            unsigned long long index = col->index[i];
-            printf("[%llu] %s\n", index, col->data[index]->string_value);
-        }
-    } else {
-        for (long long i = col->size - 1; i >= 0; i--) {
-            unsigned long long index = col->index[i];
-            printf("[%llu] %s\n", index, col->data[index]->string_value);
+    for (int i = 0; i < col->size; i++) {
+        printf("[%llu] ", col->index[i]);
+        switch (col->column_type) {
+            case INT:
+                printf("%d\n", col->data[i]->int_value);
+                break;
+            case FLOAT:
+                printf("%f\n", col->data[i]->float_value);
+                break;
+            case STRING:
+                printf("%s\n", col->data[i]->string_value);
+                break;
+            default:
+                printf("Unknown Type\n");
         }
     }
 }
+
+
+

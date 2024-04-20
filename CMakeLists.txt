@@ -14,4 +14,7 @@ add_executable(Projet_C_with_Warren
         .idea/workspace.xml
         column.c
         column.h
-        main.c)
+        main.c
+        test_failed.c
+        menu.c
+        menu.c)

@@ -7,9 +7,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>  // Pour sleep()
+#include <locale.h> // Utilisation de code ASCII etendu
 #define REALOC_SIZE 256
 #define ASC 0
 #define DESC 1
+#define MAX_COLUMNS 10  // Nous pouvez augmenter cette taille selon les besoins
+
+
+void menu();
+
+typedef struct {
+    int id;
+    char name[50];
+    float value;
+    double value1;
+} MyStruct;
 
 
 enum enum_type
@@ -36,11 +49,17 @@ struct column {
     ENUM_TYPE column_type;
     COL_TYPE **data; // array of pointers to stored data
     unsigned long long int *index; // array of integers
-    int valid_index; // index validity flag
-    int sort_dir; // sorting direction flag
+    // index valid
+    // 0 : no index
+    // -1 : invalid index
+    // 1 : valid index
+    int valid_index;
+    // direction de tri Ascendant ou Déscendant
+    // 0 : ASC
+    // 1 : DESC
+    int sort_dir;
 };
 typedef struct column COLUMN;
-
 
 /**
 * Create a column
@@ -81,10 +100,11 @@ void nb_val_egal(COLUMN* col, void* x);
 
 void convert_value(COLUMN *col, unsigned long long int i, char *str, int size);
 
-void quicksort(unsigned long long *index, COL_TYPE **data, int left, int right, int sort_dir);
-void insertion_sort(unsigned long long *index, COL_TYPE **data, int size, int sort_dir);
+void quicksort(COLUMN *col, int left, int right);
+void insertion_sort(COLUMN *col);
 void sort(COLUMN* col, int sort_dir);
 void print_col_by_index(COLUMN *col);
+int compare(COLUMN *col, COL_TYPE *a, COL_TYPE *b);
 
 
 
