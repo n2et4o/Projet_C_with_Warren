@@ -24,7 +24,7 @@ int main(){
     print_col(mycol);
 
     int z = 2;
-    pos_val(mycol,&z);
+    pos_val(mycol,z);
     
     int a = 52 ;
     nb_occ(mycol, &a);
@@ -32,9 +32,9 @@ int main(){
     a = 50;
     nb_val_supe(mycol, &a);
     
-    nb_val_inf(mycol, a);
+    nb_val_inf(mycol, &a);
 
-    nb_val_egal(mycol, a);
+    nb_val_egal(mycol, &a);
 
     mycol = create_column(CHAR, "My column");
     char j = 'A', c = 'C';
@@ -62,10 +62,10 @@ int main(){
     delete_column(&mycol);
 
     mycol = create_column(INT, "sorted column");
-    int a = 52;
-    int b = 44;
-    int c = 15;
-    int d = 18;
+    int ab = 52;
+    int bb = 44;
+    int cb = 15;
+    int db = 18;
     insert_value(mycol, &a);
     insert_value(mycol, &b);
     insert_value(mycol, &c);

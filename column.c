@@ -247,9 +247,6 @@ void pos_val(COLUMN* col, unsigned int x) {
         case UINT:
             printf("La valeur a la position %u est : %u\n", x, *((unsigned int*)col->data[x]));
             break;
-        case LONG:
-            printf("La valeur a la position %u est : %ld\n", x, *((long*)col->data[x]));
-            break;
         case STRUCTURE:
             // Assuming you have a way to stringify your structure
             printf("La valeur a la position %u est : Structure\n", x);
