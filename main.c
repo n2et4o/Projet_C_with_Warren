@@ -2,6 +2,7 @@
 // Created by 20220848 on 31/03/2024.
 //
 #include "column.h"
+#define N 7
 
 int main(){
 
@@ -22,28 +23,18 @@ int main(){
     insert_value(mycol, NULL);
     print_col(mycol);
 
-    int value; int z = 2;
-    value = pos_val(mycol,z);
-    if (value != -1){
-        printf("La valeur a la position %d est : %d\n",z,value);
-    }
-    else{
-        printf("La valeur a la position %d est : NULL\n",z);
-    }
-
+    int z = 2;
+    pos_val(mycol,&z);
+    
     int a = 52 ;
-    int occ = nb_occ(mycol, a);
-    printf("Le nombre d'occurrences de la valeur %d est : %d\n", a,occ);
-
+    nb_occ(mycol, &a);
+    
     a = 50;
-    int count = nb_val_supe(mycol, a);
-    printf("Le nombre de valeurs superieures a %d est : %d\n", a,count);
+    nb_val_supe(mycol, &a);
+    
+    nb_val_inf(mycol, a);
 
-    count = nb_val_inf(mycol, a);
-    printf("Le nombre de valeurs inferieures a %d est : %d\n", a,count);
-
-    count = nb_val_egal(mycol, a);
-    printf("Le nombre de valeurs egales a %d est : %d\n", a,count);
+    nb_val_egal(mycol, a);
 
     mycol = create_column(CHAR, "My column");
     char j = 'A', c = 'C';
@@ -52,8 +43,6 @@ int main(){
     insert_value(mycol, &c);
     print_col(mycol);
 
-
-#define N 7
     char str[N];
     mycol = create_column(INT, "My column");
     int o = 52, p = 44, n = 15, d = 18;
@@ -65,10 +54,28 @@ int main(){
     insert_value(mycol, &d);
     insert_value(mycol, NULL);
     print_col(mycol);
+    printf("pre_conv \n");
     convert_value(mycol, 5, str, N);
+    printf("post_conv\n");
     printf("%s\n", str);
     print_col(mycol);
     delete_column(&mycol);
+
+    mycol = create_column(INT, "sorted column");
+    int a = 52;
+    int b = 44;
+    int c = 15;
+    int d = 18;
+    insert_value(mycol, &a);
+    insert_value(mycol, &b);
+    insert_value(mycol, &c);
+    insert_value(mycol, &d);
+    printf("Column content before sorting : \n");
+    print_col(mycol);
+    sort(mycol,ASC);
+    printf("Column content after sorting : \n");
+    print_col_by_index(mycol);
+
 
 
 
