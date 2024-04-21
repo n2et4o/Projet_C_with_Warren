@@ -1,13 +1,19 @@
 //
 // Created by 20220848 on 31/03/2024.
 //
-#include "column.h"
-
+#include "cdataframe.h"
 #define N 5
 
 int main(){
-    menu();
-    COLUMN *mycol1 = create_column(STRUCTURE,"My column");
+
+    menu2();
+
+    return 0;
+}
+
+/*
+     * test
+     * COLUMN *mycol1 = create_column(STRUCTURE,"My column");
     int az = 1;char aq = 'e';float re = 3.5;
     insert_value(mycol1,&az);
     insert_value(mycol1,&aq);
@@ -33,14 +39,14 @@ int main(){
 
     int z = 2;
     pos_val(mycol,z);
-    
+
     int a = 52 ;
     nb_occ(mycol, &a);
     nb_occ(mycol, NULL);
 
     a = 50;
     nb_val_supe(mycol, &a);
-    
+
     nb_val_inf(mycol, &a);
 
     nb_val_egal(mycol, &a);
@@ -101,9 +107,7 @@ int main(){
     printf("Column content after sorting : \n");
     //print_col_by_index(mycol);
     print_col(mycol);
-
-    return 0;
-};
+     */
 
 
 

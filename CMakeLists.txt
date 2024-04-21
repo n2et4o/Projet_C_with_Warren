@@ -17,4 +17,7 @@ add_executable(Projet_C_with_Warren
         main.c
         test_failed.c
         menu.c
-        menu.c)
+        menu.c
+        cdataframe.c
+        cdataframe.h
+        cdataframe.h)

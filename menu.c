@@ -1,7 +1,7 @@
 //
 // Created by 20220848 on 20/04/2024.
 //
-#include "column.h"
+#include "cdataframe.h"
 
 
 void menu(){
@@ -33,8 +33,9 @@ void menu(){
                            "3 - Affichez une colonne\n"
                            "4 - Recherchez dans une colonne\n"
                            "5 - Triez une colonne\n"
-                           "6 - Retournez au menu principal\n"
-                           "7 - Quittez le programme\n");
+                           "6 - Supprimez une colonne\n"
+                           "7 - Retournez au menu principal\n"
+                           "8 - Quittez le programme\n");
                     printf("Entrez votre choix : ");
                     scanf(" %c", &step1);
 
@@ -90,7 +91,7 @@ void menu(){
                                 printf("Colonne '%s' creee avec succes.\n", name_col);
                                 index++;
                             } else {
-                                printf("Echec de la création de la colonne.\n");
+                                printf("Echec de la creation de la colonne.\n");
                             }
                             break;
                         }
@@ -100,7 +101,7 @@ void menu(){
                                 continue;
                             }
                             int col_index;
-                            printf("Entrez l'index de la colonne pour insertion (0 à %d): ", index-1);
+                            printf("Entrez l'index de la colonne pour insertion (0 a %d): ", index-1);
                             scanf("%d", &col_index);
                             if (col_index < 0 || col_index >= index) {
                                 printf("Index invalide.\n");
@@ -113,9 +114,9 @@ void menu(){
                                     printf("Saississez une valeur entiere:\n");
                                     scanf("%d", &val);
                                     if (!insert_value(mycols[col_index], &val)) {
-                                        printf("Échec de l'insertion.\n");
+                                        printf("Echec de l'insertion.\n");
                                     } else {
-                                        printf("Valeur insérée avec succes.\n");
+                                        printf("Valeur inseree avec succes.\n");
                                     }
                                     break;
                                 case FLOAT:
@@ -124,9 +125,9 @@ void menu(){
                                     printf("Saississez une valeur reelle:\n");
                                     scanf("%f", &fval);
                                     if (!insert_value(mycols[col_index], &fval)) {
-                                        printf("Échec de l'insertion.\n");
+                                        printf("Echec de l'insertion.\n");
                                     } else {
-                                        printf("Valeur insérée avec succes.\n");
+                                        printf("Valeur inseree avec succes.\n");
                                     }
                                     break;
                                 case DOUBLE:
@@ -135,9 +136,9 @@ void menu(){
                                     printf("Saississez une valeur reelle longue:\n");
                                     scanf("%lf", &dval);
                                     if (!insert_value(mycols[col_index], &dval)) {
-                                        printf("Échec de l'insertion.\n");
+                                        printf("Echec de l'insertion.\n");
                                     } else {
-                                        printf("Valeur insérée avec succes.\n");
+                                        printf("Valeur inseree avec succes.\n");
                                     }
                                     break;
                                 case CHAR:
@@ -146,9 +147,9 @@ void menu(){
                                     printf("Saissisez un caractere :\n");
                                     scanf(" %c", &cval);
                                     if (!insert_value(mycols[col_index], &cval)) {
-                                        printf("Échec de l'insertion.\n");
+                                        printf("Echec de l'insertion.\n");
                                     } else {
-                                        printf("Valeur insérée avec succes.\n");
+                                        printf("Valeur inseree avec succes.\n");
                                     }
                                     break;
                                 case STRING:
@@ -157,9 +158,9 @@ void menu(){
                                     printf("Saississez une chaine de caractere :\n");
                                     scanf("%s", sval);
                                     if (!insert_value(mycols[col_index], &sval)) {
-                                        printf("Échec de l'insertion.\n");
+                                        printf("Echec de l'insertion.\n");
                                     } else {
-                                        printf("Valeur insérée avec succes.\n");
+                                        printf("Valeur inseree avec succes.\n");
                                     }
                                     break;
                                 case STRUCTURE:
@@ -212,15 +213,15 @@ void menu(){
                             }
                             printf("Recherche dans une colonne...\n");
                             int col_index;
-                            printf("Entrez l'index de la colonne pour la recherche (0 à %d): ", index-1);
+                            printf("Entrez l'index de la colonne pour la recherche (0 a %d): ", index-1);
                             scanf("%d", &col_index);
                             if (col_index < 0 || col_index >= index) {
                                 printf("Index invalide.\n");
                                 break;
                             }
-                            printf("1 - Recherchez la valeur présente à la position x\n2 - Recherchez le nombre de d’occurrences d’une valeur x\n"
-                                   "3 - Recherchez le nombre de valeurs qui sont supérieures à x\n4 - Recherchez le nombre de valeurs qui sont inférieures à x\n"
-                                   "5 - Recherchez le nombre de valeurs qui sont égales à x\n6 - Retouner au menu precedent\n7 - Quittez\n");
+                            printf("1 - Recherchez la valeur presente a la position x\n2 - Recherchez le nombre de d’occurrences d’une valeur x\n"
+                                   "3 - Recherchez le nombre de valeurs qui sont superieures a x\n4 - Recherchez le nombre de valeurs qui sont inferieures a x\n"
+                                   "5 - Recherchez le nombre de valeurs qui sont egales a x\n6 - Retouner au menu precedent\n7 - Quittez\n");
                             do {
                                 scanf(" %c",dstep4);
                             }while(dstep4 < '1' || dstep4 > '7');
@@ -235,12 +236,15 @@ void menu(){
                                 printf("Aucune colonne n'a encore ete creee\n");
                                 continue;
                             }
-                            printf("Tri d'une colonne...\n");
+                            printf("Tri de colonnes...\n");
                             break;
                         case '6':
-                            printf("Retour au menu principal...\n\n");
+                            printf("Suppression de colonnes...\n");
                             break;
                         case '7':
+                            printf("Retour au menu principal...\n\n");
+                            break;
+                        case '8':
                             printf("Au revoir !\n");
                             go = 0; // Sortie du programme
                             break;
@@ -248,7 +252,7 @@ void menu(){
                             printf("Choix non valide. Veuillez reessayer.\n");
                             break;
                     }
-                } while(step1 != '7');
+                } while(step1 != '8');
                 break;
             case '2':
                 printf("Programme realise par \n\n");
@@ -284,14 +288,133 @@ void menu(){
                 printf("* Manipulation de Donnees: Des fonctions associees pour trier, filtrer, regrouper \n\t\t\tet effectuer d'autres operations sur les donnees.\n");
                 sleep(2.5);
                 printf("* Analyse de Donnees: Des outils integres ou supplementaires qui permettent \n\t\t\tde calculer des statistiques descriptives, de construire des modeles, etc.\n\n");
+                sleep(2.5);
                 break;
             case '5':
                 printf("Au revoir!\n");
                 go = 0; // Sortie de la boucle while
                 break;
             default:
-                printf("Choix non valide. Veuillez réessayer.\n\n");
+                printf("Choix non valide. Veuillez reessayer.\n\n");
                 break;
         }
     }
 }
+
+
+
+
+void menu2() {
+    printf("Bonjour !\n");
+    sleep(1);
+    printf("Bienvenue sur votre CDataframe.\n\n");
+    sleep(1);
+    printf("Choisissez un chiffre :\n");
+
+    // Création d'une dataframe vide initial
+    CDATAFRAME *dataframe = create_empty_cdataframe();
+    if (dataframe == NULL) {
+        fprintf(stderr, "Failed to create an initial empty dataframe.\n");
+        return;  // En cas d'échec de la création, arrête le programme
+    }    int go = 1;
+    char choice;
+
+    while (go) {
+        printf("1 - Commencez\n"
+               "2 - Credit\n"
+               "3 - Comment ca marche ?\n"
+               "4 - C'est quoi un CDataframe et a quoi ca sert ?\n"
+               "5 - Quitter\n");
+        printf("Entrez votre choix : ");
+        scanf(" %c", &choice);  // Assurez-vous de capturer les blancs avant le caractère
+        printf("\n");
+
+        switch (choice) {
+            case '1': {
+                char step1;
+                do {
+                    printf("1 - Creez une colonne\n"
+                           "2 - Inserez une valeur dans une colonne\n"
+                           "3 - Affichez une colonne\n"
+                           "4 - Recherchez dans une colonne\n"
+                           "5 - Triez une colonne\n"
+                           "6 - Supprimez une colonne\n"
+                           "7 - Retournez au menu principal\n"
+                           "8 - Quittez le programme\n");
+                    printf("Entrez votre choix : ");
+                    scanf(" %c", &step1);
+
+                    switch(step1) {
+                        case '1':
+                            if (dataframe->num_columns >= MAX_COLUMNS) {
+                                printf("Nombre maximum de colonnes atteint.\n");
+                                break;
+                            }
+                            // Processus de création de colonne
+                            create_column_process(dataframe);
+                            printf("\n");
+                            break;
+                        case '2':
+                            // Processus d'insertion de valeur
+                            insert_value_process(dataframe);
+                            printf("\n");
+                            break;
+                        case '3':
+                            // Processus d'affichage de colonnes
+                            print_columns_process(dataframe);
+                            printf("\n");
+                            break;
+                        case '4':
+                            // Processus de recherche dans les colonnes
+                            search_columns_process(dataframe);
+                            printf("\n");
+                            break;
+                        case '5':
+                            // Processus de tri des colonnes
+                            //sort_columns_process(dataframe);
+                            printf("bientot disponible\n");
+                            printf("\n");
+                            break;
+                        case '6':
+                            delete_columns_process(dataframe);
+                            printf("\n");
+                            break;
+                        case '7':
+                            printf("Retour au menu principal...\n\n");
+                            break;
+                        case '8':
+                            go = 0;  // Sortie du programme
+                            break;
+                        default:
+                            printf("Choix non valide. Veuillez reessayer.\n");
+                            break;
+                    }
+                } while (step1 != '6' && step1 != '8');
+                break;
+            }
+            case '2':
+                printf("Programme realise par:\nJoss DOUNIAMA OKANA & Warren BADEAU\n\n");
+                break;
+            case '3':
+                printf("Suivez les instructions le programme est tres intuitif et vous guide durant tout le parcours.\n\n");
+                break;
+            case '4':
+               explain_cdataframe();
+                break;
+            case '5':
+                printf("Au revoir!\n");
+                go = 0;  // Sortie de la boucle while
+                break;
+            default:
+                printf("Choix non valide. Veuillez reessayer.\n\n");
+                break;
+        }
+    }
+
+    delete_cdataframe(&dataframe);  // Libérer toute la mémoire allouée au dataframe
+    printf("Au revoir !\n");
+}
+
+
+
+

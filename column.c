@@ -137,14 +137,12 @@ void delete_column(COLUMN** col) {
         free((*col)->index);
     }
 
-    // Libération de la mémoire allouée pour la structure de colonne
+    // Libération de la mémoire allouée pour la structure de colonne elle-même
     free(*col);
 
-    // Affection de NULL au pointeur pour éviter les accès après libération
+    // Mettre le pointeur de la colonne à NULL
     *col = NULL;
-    //printf("colonne supprimee\n");
 }
-
 // ================= Création de la fonction print_col ======================
 void print_col(COLUMN* col) {
     if (col == NULL) {
@@ -400,6 +398,9 @@ void nb_val_egal(COLUMN* col, void* x) {
                 case CHAR:
                     if (*((char*)(col->data[i])) == *((char*)x)) count++;
                     break;
+                case STRING:
+                    if (strcmp((char*)col->data[i], (char*)x) == 0) count++;  // Compare strings
+                    break;
                 default:
                     printf("Comparison not supported for this type\n");
                     return;
@@ -407,7 +408,7 @@ void nb_val_egal(COLUMN* col, void* x) {
         }
     }
 
-    // Assuming x is of type int for the printf format specifier; adjust as necessary for other types
+    // Print results based on the type of x, assuming x is of a basic data type
     if (type == INT || type == UINT) {
         printf("Le nombre de valeurs egales a %d est : %d\n", *((int*)x), count);
     } else if (type == FLOAT) {
@@ -416,6 +417,8 @@ void nb_val_egal(COLUMN* col, void* x) {
         printf("Le nombre de valeurs egales a %lf est : %d\n", *((double*)x), count);
     } else if (type == CHAR) {
         printf("Le nombre de valeurs egales a '%c' est : %d\n", *((char*)x), count);
+    } else if (type == STRING) {
+        printf("Le nombre de valeurs egales a \"%s\" est : %d\n", (char*)x, count);
     }
 }
 
