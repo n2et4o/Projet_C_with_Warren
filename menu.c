@@ -17,7 +17,7 @@ void menu(){
 
     while (go) {
         printf("1 - Commencez\n"
-               "2 - Options\n"
+               "2 - Credit\n"
                "3 - Comment ca marche ?\n"
                "4 - C'est quoi un CDataframe et a quoi ca sert ?\n"
                "5 - Quitter\n");
@@ -95,6 +95,10 @@ void menu(){
                             break;
                         }
                         case '2': {
+                            if (mycols[MAX_COLUMNS] == NULL){
+                                printf("Aucune colonne n'a encore ete creee\n");
+                                continue;
+                            }
                             int col_index;
                             printf("Entrez l'index de la colonne pour insertion (0 à %d): ", index-1);
                             scanf("%d", &col_index);
@@ -164,6 +168,11 @@ void menu(){
 
                         }
                         case '3':
+                            if (mycols[MAX_COLUMNS] == NULL){
+                                printf("Aucune colonne n'a encore ete creee\n");
+                                continue;
+
+                            }
                             printf("Affichage des colonnes...\n");
                             printf("Que voulez vous afficher :\n1 - Une colonne en particuliere\n"
                                    "2 - Un nombre precis de colonnes\n3 - Toutes les colonnes\n4 - Retourner au menu precedent\n");
@@ -197,6 +206,10 @@ void menu(){
                             }
                             break;
                         case '4':
+                            if (mycols[MAX_COLUMNS] == NULL){
+                                printf("Aucune colonne n'a encore ete creee\n");
+                                continue;
+                            }
                             printf("Recherche dans une colonne...\n");
                             int col_index;
                             printf("Entrez l'index de la colonne pour la recherche (0 à %d): ", index-1);
@@ -218,6 +231,10 @@ void menu(){
                             }
                             break;
                         case '5':
+                            if (mycols[MAX_COLUMNS] == NULL){
+                                printf("Aucune colonne n'a encore ete creee\n");
+                                continue;
+                            }
                             printf("Tri d'une colonne...\n");
                             break;
                         case '6':
@@ -228,19 +245,45 @@ void menu(){
                             go = 0; // Sortie du programme
                             break;
                         default:
-                            printf("Choix non valide. Veuillez réessayer.\n");
+                            printf("Choix non valide. Veuillez reessayer.\n");
                             break;
                     }
                 } while(step1 != '7');
                 break;
             case '2':
-                printf("Options - Pas encore implémenté.\n\n");
+                printf("Programme realise par \n\n");
+                sleep(1);
+                printf("Joss DOUNIAMA OKANA & Warren BADEAU\n\n");
                 break;
             case '3':
-                printf("Suivez les instructions le programme est très intuitif et vous guide durant tout le long.\n\n");
+                printf("Suivez les instructions le programme est tres intuitif et vous guide durant tout le long.\n\n");
                 break;
             case '4':
-                printf("CDataframe expliqué - Pas encore implémenté.\n\n");
+                printf("Qu'est ce qu'un CDataframe ?\n");
+                sleep(2.5);
+                printf("Un CDataframe est un dataframe en languague C\n");
+                sleep(2.5);
+                printf("Alors qu'est ce qu'un Dataframe ?\n");
+                sleep(2.5);
+                printf("Dans les langages d'analyse de donnees,");
+                sleep(2.5);
+                printf( "un dataframe est une structure de donnees tabulaire,\nc'est-a-dire qu'elle est composee de lignes et de colonnes,\n");
+                sleep(2.5);
+                printf("ou chaque colonne peut contenir des donnees d'un type different. Les dataframes permettent de stocker,\n");
+                sleep(2.5);
+                printf("de manipuler et d'analyser des donnees structurees de maniere efficace et intuitive.\n\n");
+                sleep(2.5);
+                printf("A quoi sert un CDataframe ?\n");
+                sleep(2.5);
+                printf("* Stockage Tabulaire de Donnees: Comme un tableau ou un ensemble de tableaux qui stockent \n\t\t\tdes donnees structurees en lignes et en colonnes.\n");
+                sleep(2.5);
+                printf("* Heterogeneite des Types: La capacite de stocker differents types de donnees \n\t\t\t(par exemple, des entiers, des flottants, des chaines de caracteres) ");
+                sleep(2.5);
+                printf("\n\t\t\tdans differentes colonnes, ce qui est different d'un tableau C standard\n\t\t\t qui ne peut stocker qu'un seul type de donnees.\n");
+                sleep(2.5);
+                printf("* Manipulation de Donnees: Des fonctions associees pour trier, filtrer, regrouper \n\t\t\tet effectuer d'autres operations sur les donnees.\n");
+                sleep(2.5);
+                printf("* Analyse de Donnees: Des outils integres ou supplementaires qui permettent \n\t\t\tde calculer des statistiques descriptives, de construire des modeles, etc.\n\n");
                 break;
             case '5':
                 printf("Au revoir!\n");

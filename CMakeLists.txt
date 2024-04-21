@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.23)
 project(Projet_C_with_Warren)
 
 set(CMAKE_CXX_STANDARD 14)

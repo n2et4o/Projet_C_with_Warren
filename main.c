@@ -6,7 +6,7 @@
 #define N 5
 
 int main(){
-    //menu();
+    menu();
     COLUMN *mycol1 = create_column(STRUCTURE,"My column");
     int az = 1;char aq = 'e';float re = 3.5;
     insert_value(mycol1,&az);
