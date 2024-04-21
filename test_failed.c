@@ -67,14 +67,14 @@
  */
 
 /*
- * case '6':
+ * case '5':
                             if (mycols[MAX_COLUMNS] == NULL){
                                 printf("Aucune colonne n'a encore ete creee\n");
                                 continue;
 
                             }
-                            printf("Suppression de colonnes...\n");
-                            printf("Que voulez vous supprimer :\n1 - Une colonne en particuliere\n"
+                            printf("Tri de colonnes...\n");
+                            printf("Que voulez vous trier :\n1 - Une colonne en particuliere\n"
                                    "2 - Un nombre precis de colonnes\n3 - Toutes les colonnes\n4 - Retourner au menu precedent\n");
                             do{
                                 scanf(" %c",dstep3);
@@ -82,14 +82,14 @@
                             switch (dstep3) {
                                 case '1':
                                     int nb_col;
-                                    printf("Entrez le numero de colonne que vous voulez supprimer entre (0 et %d):\n", index-1);
+                                    printf("Entrez le numero de colonne que vous voulez trier entre (0 et %d):\n", index-1);
                                     do {
                                         scanf("%d",&nb_col);
                                     } while (nb_col < 0 || nb_col > index-1);
 
                                 case '2':
                                     int deb_int,fin_int;
-                                    printf("Entrez le numero d'intervalle de colonne que vous voulez supprimer entre (0 et %d) separer par une virgule ex: 2,3:\n", index-1);
+                                    printf("Entrez le numero d'intervalle de colonne que vous voulez trier entre (0 et %d) separer par une virgule ex: 2,3:\n", index-1);
                                     do {
                                         scanf("%d,%d",deb_int,fin_int);
                                     }while(deb_int < 0 || deb_int > index-1 || deb_int > fin_int || fin_int < deb_int || fin_int > index || fin_int < 0);

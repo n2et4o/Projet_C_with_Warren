@@ -31,6 +31,8 @@ void print_columns_process(CDATAFRAME *dataframe);
 
 void search_columns_process(CDATAFRAME *dataframe);
 
+void sort_columns_process(CDATAFRAME *dataframe);
+
 void delete_columns_process(CDATAFRAME *dataframe);
 
 void menu2();

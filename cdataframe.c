@@ -131,60 +131,94 @@ void clean_stdin() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF) {}  // Cette boucle vide le tampon stdin.
 }
+
 void create_column_process(CDATAFRAME *dataframe) {
-    if (dataframe->num_columns >= MAX_COLUMNS) {
-        printf("Nombre maximum de colonnes atteint (%d colonnes).\n", MAX_COLUMNS);
+    if (dataframe == NULL) {
+        printf("Dataframe non initialise.\n");
         return;
     }
 
-    printf("Creation d'une colonne...\n");
-    char name_col[256];
-    printf("Nommez votre colonne : ");
+    int num_columns_to_add = 0;
+    printf("Combien de colonnes souhaitez-vous creer : ");
+    scanf("%d", &num_columns_to_add);
+    clean_stdin();  // Nettoyer le buffer après la lecture d'un entier
 
-    clean_stdin();  // Nettoyer stdin pour éviter que fgets ne lise une ligne vide
-
-    // Utilisez fgets pour lire la ligne entière, incluant les espaces.
-    if (fgets(name_col, sizeof(name_col), stdin) == NULL) {
-        printf("Erreur lors de la lecture du nom de la colonne.\n");
-        return;  // ou gérez l'erreur comme il se doit
+    if (num_columns_to_add < 1) {
+        printf("Nombre de colonnes non valide. Retour au menu precedent.\n");
+        return;
     }
 
-    // Remplacez les newline par des caractères nuls pour éviter des problèmes dans les chaînes
-    name_col[strcspn(name_col, "\n")] = 0;
-
-    // Affiche le nom de la colonne entré par l'utilisateur
-    printf("Vous avez nomme votre colonne : '%s'\n", name_col);
-
-    ENUM_TYPE col_type;
-    printf("Choisissez le type de colonne que vous voulez creer :\n"
-           "1 - Colonne d'entier (INT)\n"
-           "2 - Colonne de reel (FLOAT)\n"
-           "3 - Colonne de caracteres (CHAR)\n"
-           "4 - Colonne de chaine de caracteres (STRING)\n"
-           "5 - Colonne de reel long (DOUBLE)\n"
-           "6 - Colonne de types multiples (STRUCTURE)\n"
-           "7 - Retourner au menu precedent\n");
-    printf("Entrez votre choix : ");
-    char choice;
-    scanf(" %c", &choice);
-    char typ[10];
-    switch (choice) {
-        case '1': col_type = INT; strcpy(typ, "INT"); break;
-        case '2': col_type = FLOAT; strcpy(typ, "FLOAT"); break;
-        case '3': col_type = CHAR; strcpy(typ, "CHAR"); break;
-        case '4': col_type = STRING; strcpy(typ, "STRING"); break;
-        case '5': col_type = DOUBLE; strcpy(typ, "DOUBLE"); break;
-        case '6': col_type = STRUCTURE; printf("Bientot disponible.\n"); return;
-        case '7': return; // Retour directement au menu de création
-        default: printf("Choix invalide. Retour au menu de creation.\n"); return;
+    if (dataframe->num_columns + num_columns_to_add > MAX_COLUMNS) {
+        printf("Impossible de creer %d colonnes, cela depasse le maximum autorise de %d colonnes.\n", num_columns_to_add, MAX_COLUMNS);
+        return;
     }
+    int nb;
+    for (int i = 0; i < num_columns_to_add; ++i) {
+        if (dataframe->num_columns >= MAX_COLUMNS) {
+            printf("Nombre maximum de colonnes atteint (%d colonnes).\n", MAX_COLUMNS);
+            break;
+        }
 
-    COLUMN* new_column = create_column(col_type, name_col);
-    if (new_column == NULL) {
-        printf("Echec de la creation de la colonne '%s'.\n", name_col);
-    } else {
-        dataframe->columns[dataframe->num_columns++] = new_column;  // Ajoutez la colonne au dataframe
-        printf("Colonne '%s' de type '%s' creee avec succes.\n", name_col, typ);
+        printf("\nCreation de la colonne %d...\n", i);
+        char name_col[256];
+        printf("Nommez votre colonne : ");
+
+        if (fgets(name_col, sizeof(name_col), stdin) == NULL) {
+            printf("Erreur lors de la lecture du nom de la colonne.\n");
+            continue;  // Continue avec la prochaine colonne
+        }
+
+        name_col[strcspn(name_col, "\n")] = 0;  // Supprime le newline
+        printf("Vous avez nomme votre colonne : '%s'\n", name_col);
+
+        ENUM_TYPE col_type;
+        printf("Choisissez le type de colonne que vous voulez creer :\n"
+               "1 - Colonne d'entier (INT)\n"
+               "2 - Colonne de reel (FLOAT)\n"
+               "3 - Colonne de caracteres (CHAR)\n"
+               "4 - Colonne de chaine de caracteres (STRING)\n"
+               "5 - Colonne de reel long (DOUBLE)\n"
+               "6 - Colonne de types multiples (STRUCTURE)\n"
+               "7 - Annuler la creation de cette colonne et retourner au menu precedent\n");
+        printf("Entrez votre choix : ");
+        char choice;
+        scanf(" %c", &choice);
+        clean_stdin();  // Nettoyer le buffer après la lecture d'un caractère
+
+        switch (choice) {
+            case '1': col_type = INT; break;
+            case '2': col_type = FLOAT; break;
+            case '3': col_type = CHAR; break;
+            case '4': col_type = STRING; break;
+            case '5': col_type = DOUBLE; break;
+            case '6': col_type = STRUCTURE; printf("Bientot disponible.\n"); continue;
+            case '7': printf("Creation annulee. Retour.\n"); return;
+            default: printf("Choix invalide. Retour au menu de creation.\n"); continue;
+        }
+
+        COLUMN* new_column = create_column(col_type, name_col);
+        if (new_column == NULL) {
+            printf("Echec de la creation de la colonne '%s'.\n", name_col);
+        } else {
+            dataframe->columns[dataframe->num_columns++] = new_column;
+            printf("Colonne '%s' creee avec succes et ajoutee au dataframe.\n", name_col);
+        }
+        if ( i > 5) {  // Ask if more insertions are expected, unless it's the last one planned
+            printf("Voulez-vous continuer ? (Oui: o / Non: n): ");
+            char decision;
+            scanf(" %c", &decision);
+            getchar();  // Consume the newline character
+            if (decision == 'n' || decision == 'N') {
+                break;  // Break the loop if user decides not to continue
+            }
+        }
+        nb = i +1;
+    }
+    if (nb > 1){
+        printf("Vous avez cree %d colonnes\n",nb);
+    }
+    else{
+        printf("Vous avez cree %d colonne\n",nb);
     }
 }
 
@@ -248,7 +282,7 @@ void insert_value_process(CDATAFRAME *dataframe) {
         } else {
             printf("Valeur inseree avec succes a l'indice %d dans '%s'.\n", i, col->title);
         }
-        if ( count > 5) {  // Ask if more insertions are expected, unless it's the last one planned
+        if ( i > 5) {  // Ask if more insertions are expected, unless it's the last one planned
             printf("Voulez-vous continuer ? (Oui: o / Non: n): ");
             char decision;
             scanf(" %c", &decision);
@@ -474,6 +508,82 @@ void search_columns_process(CDATAFRAME *dataframe) {
             break;
     }
 }
+void sort_columns_process(CDATAFRAME *dataframe) {
+    if (dataframe == NULL || dataframe->num_columns == 0) {
+        printf("Aucune colonne n'a encore ete creee.\n");
+        return;
+    }
+
+    printf("Tri des colonnes...\n");
+    printf("Voulez-vous trier :\n"
+           "1 - Une colonne en particulier\n"
+           "2 - Plusieurs colonnes\n"
+           "3 - Toutes les colonnes\n"
+           "4 - Retourner au menu precedent\n");
+    int choice;
+    printf("Entrez votre choix : ");
+    scanf("%d", &choice);
+
+    int index, start, end;
+    int sort_dir = ASC;  // Default to ascending
+    char direction;
+
+    switch (choice) {
+        case 1:
+            printf("Entrez le numero de la colonne a trier (0 a %d) : ", dataframe->num_columns - 1);
+            scanf("%d", &index);
+            if (index < 0 || index >= dataframe->num_columns) {
+                printf("Index invalide.\n");
+                return;
+            }
+
+            printf("Choisissez la direction du tri (A pour ascendant, D pour descendant): ");
+            scanf(" %c", &direction);
+            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
+
+            sort(dataframe->columns[index], sort_dir);
+            printf("Colonne %d triee.\n", index);
+            break;
+
+        case 2:
+            printf("Entrez les indices de debut et de fin pour le tri (ex: 1 3 pour trier de la colonne 1 a 3) : ");
+            scanf("%d %d", &start, &end);
+            if (start < 0 || end >= dataframe->num_columns || start > end) {
+                printf("Indices invalides.\n");
+                return;
+            }
+
+            printf("Choisissez la direction du tri (A pour ascendant, D pour descendant): ");
+            scanf(" %c", &direction);
+            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
+
+            for (int i = start; i <= end; i++) {
+                sort(dataframe->columns[i], sort_dir);
+                printf("Colonne %d triee.\n", i);
+            }
+            break;
+
+        case 3:
+            printf("Choisissez la direction du tri pour toutes les colonnes (A pour ascendant, D pour descendant): ");
+            scanf(" %c", &direction);
+            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
+
+            for (int i = 0; i < dataframe->num_columns; i++) {
+                sort(dataframe->columns[i], sort_dir);
+                printf("Colonne %d triee.\n", i);
+            }
+            break;
+
+        case 4:
+            printf("Retour au menu precedent.\n");
+            return;
+
+        default:
+            printf("Choix non valide.\n");
+            break;
+    }
+}
+
 
 void delete_columns_process(CDATAFRAME *dataframe) {
     if (dataframe == NULL || dataframe->num_columns == 0) {

@@ -100,13 +100,16 @@ void nb_val_egal(COLUMN* col, void* x);
 
 void convert_value(COLUMN *col, unsigned long long int i, char *str, int size);
 
-void quicksort(COLUMN *col, int left, int right);
-void insertion_sort(COLUMN *col);
+//void quicksort(COLUMN *col, int left, int right);
+//void insertion_sort(COLUMN *col);
 void sort(COLUMN* col, int sort_dir);
 void print_col_by_index(COLUMN *col);
-int compare(COLUMN *col, COL_TYPE *a, COL_TYPE *b);
+//int compare(COLUMN *col, COL_TYPE *a, COL_TYPE *b);
 
 
+void quicksort(COL_TYPE **data, int left, int right, COLUMN *col);
+void insertion_sort(COL_TYPE **data, int n, COLUMN *col);
+int compare(COL_TYPE *a, COL_TYPE *b, COLUMN *col);
 
 
 

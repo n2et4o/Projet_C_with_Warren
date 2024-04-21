@@ -239,7 +239,42 @@ void menu(){
                             printf("Tri de colonnes...\n");
                             break;
                         case '6':
+                            if (mycols[MAX_COLUMNS] == NULL){
+                                printf("Aucune colonne n'a encore ete creee\n");
+                                continue;
+
+                            }
                             printf("Suppression de colonnes...\n");
+                            printf("Que voulez vous supprimer :\n1 - Une colonne en particuliere\n"
+                                   "2 - Un nombre precis de colonnes\n3 - Toutes les colonnes\n4 - Retourner au menu precedent\n");
+                            do{
+                                scanf(" %c",dstep3);
+                            } while (dstep3 < '1' || dstep3 > '4');
+                            switch (dstep3) {
+                                case '1':
+                                    int nb_col;
+                                    printf("Entrez le numero de colonne que vous voulez supprimer entre (0 et %d):\n", index-1);
+                                    do {
+                                        scanf("%d",&nb_col);
+                                    } while (nb_col < 0 || nb_col > index-1);
+
+                                case '2':
+                                    int deb_int,fin_int;
+                                    printf("Entrez le numero d'intervalle de colonne que vous voulez supprimer entre (0 et %d) separer par une virgule ex: 2,3:\n", index-1);
+                                    do {
+                                        scanf("%d,%d",deb_int,fin_int);
+                                    }while(deb_int < 0 || deb_int > index-1 || deb_int > fin_int || fin_int < deb_int || fin_int > index || fin_int < 0);
+                                    for (int i = deb_int; i < fin_int; i++) {
+
+                                    }
+                                case '3':
+                                    for (int i = 0; i < index; i++) {
+                                        ;
+                                    }
+                                    break;
+                                case '4':
+                                    continue;
+                            }
                             break;
                         case '7':
                             printf("Retour au menu principal...\n\n");
@@ -371,8 +406,8 @@ void menu2() {
                             break;
                         case '5':
                             // Processus de tri des colonnes
-                            //sort_columns_process(dataframe);
-                            printf("bientot disponible\n");
+                            sort_columns_process(dataframe);
+                            //printf("bientot disponible\n");
                             printf("\n");
                             break;
                         case '6':
@@ -381,6 +416,7 @@ void menu2() {
                             break;
                         case '7':
                             printf("Retour au menu principal...\n\n");
+                            //continue;
                             break;
                         case '8':
                             go = 0;  // Sortie du programme
@@ -389,7 +425,7 @@ void menu2() {
                             printf("Choix non valide. Veuillez reessayer.\n");
                             break;
                     }
-                } while (step1 != '6' && step1 != '8');
+                } while (step1 != '7'&& step1 != '8');
                 break;
             }
             case '2':

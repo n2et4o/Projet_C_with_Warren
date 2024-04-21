@@ -469,105 +469,104 @@ void convert_value(COLUMN* col, unsigned long long int i, char* str, int size) {
     }
 }
 
-int compare(COLUMN *col, COL_TYPE *a, COL_TYPE *b) {
-    int sort_dir = col->sort_dir; // Direction of the sort stored in the COLUMN structure
-    char char_a, char_b;
-
-    switch (col->column_type) {
-        case CHAR:
-            char_a = a->char_value;
-            char_b = b->char_value;
-            if (sort_dir == ASC)
-                return (char_a > char_b) - (char_a < char_b);
-            else
-                return (char_b > char_a) - (char_b < char_a);
-
-        case STRING:
-            char_a = a->string_value[0];
-            char_b = b->string_value[0];
-            if (sort_dir == ASC)
-                return (char_a > char_b) - (char_a < char_b);
-            else
-                return (char_b > char_a) - (char_b < char_a);
-
-        case INT:
-            if (sort_dir == ASC)
-                return (a->int_value > b->int_value) - (a->int_value < b->int_value);
-            else
-                return (b->int_value > a->int_value) - (b->int_value < a->int_value);
-
-        case FLOAT:
-            if (sort_dir == ASC)
-                return (a->float_value > b->float_value) ? 1 : (a->float_value < b->float_value) ? -1 : 0;
-            else
-                return (b->float_value > a->float_value) ? 1 : (b->float_value < a->float_value) ? -1 : 0;
-
-        case DOUBLE:
-            if (sort_dir == ASC)
-                return (a->double_value > b->double_value) ? 1 : (a->double_value < b->double_value) ? -1 : 0;
-            else
-                return (b->double_value > a->double_value) ? 1 : (b->double_value < a->double_value) ? -1 : 0;
-
-        default:
-            fprintf(stderr, "Unsupported data type for sorting.\n");
-            exit(EXIT_FAILURE);
+// Function to compare two COL_TYPE values based on the column type
+int compare(COL_TYPE *a, COL_TYPE *b, COLUMN *col) {
+    if (col->sort_dir == ASC) {  // Ascending order
+        switch (col->column_type) {
+            case INT:
+                return (*(int *)a - *(int *)b);
+            case FLOAT:
+                return (*(float *)a > *(float *)b) - (*(float *)a < *(float *)b);
+            case CHAR:
+                return (*(char *)a - *(char *)b);
+            case DOUBLE:
+                return (*(double *)a > *(double *)b) - (*(double *)a < *(double *)b);
+            case STRING:
+                return strcmp((char *)a, (char *)b);
+            default:
+                printf("Unsupported column type for sorting.\n");
+                return 0;
+        }
+    } else {  // Descending order
+        switch (col->column_type) {
+            case INT:
+                return (*(int *)b - *(int *)a);
+            case FLOAT:
+                return (*(float *)b > *(float *)a) - (*(float *)b < *(float *)a);
+            case CHAR:
+                return (*(char *)b - *(char *)a);
+            case DOUBLE:
+                return (*(double *)b > *(double *)a) - (*(double *)b < *(double *)a);
+            case STRING:
+                return strcmp((char *)b, (char *)a);
+            default:
+                printf("Unsupported column type for sorting.\n");
+                return 0;
+        }
     }
 }
 
-
-void quicksort(COLUMN *col, int left, int right) {
-    int i, j;
-    COL_TYPE *pivot, *temp;
-
+// Quick Sort Algorithm
+void quicksort(COL_TYPE **data, int left, int right, COLUMN *col) {
     if (left < right) {
-        pivot = col->data[right];
-        i = (left - 1);
+        int i = left, j = right;
+        COL_TYPE *pivot = data[(left + right) / 2];
 
-        for (j = left; j < right; j++) {
-            if (compare(col, col->data[j], pivot) <= 0) {
+        while (i <= j) {
+            while (compare(data[i], pivot, col) < 0) i++;
+            while (compare(data[j], pivot, col) > 0) j--;
+            if (i <= j) {
+                COL_TYPE *tmp = data[i];
+                data[i] = data[j];
+                data[j] = tmp;
                 i++;
-                temp = col->data[i];
-                col->data[i] = col->data[j];
-                col->data[j] = temp;
+                j--;
             }
         }
-        temp = col->data[i + 1];
-        col->data[i + 1] = col->data[right];
-        col->data[right] = temp;
-        quicksort(col, left, i);  // Corrected to i instead of i+1
-        quicksort(col, i + 1, right);  // Corrected to i+1 instead of i+2
+
+        if (left < j)
+            quicksort(data, left, j, col);
+        if (i < right)
+            quicksort(data, i, right, col);
     }
 }
 
-void insertion_sort(COLUMN *col) {
-    int i, j;
-    COL_TYPE *key;
+// Insertion Sort Algorithm
+void insertion_sort(COL_TYPE **data, int n, COLUMN *col) {
+    for (int i = 1; i < n; i++) {
+        COL_TYPE *key = data[i];
+        int j = i - 1;
 
-    for (i = 1; i < col->size; i++) {
-        key = col->data[i];
-        j = i - 1;
-
-        while (j >= 0 && compare(col, col->data[j], key) > 0) {
-            col->data[j + 1] = col->data[j];
+        while (j >= 0 && compare(data[j], key, col) > 0) {
+            data[j + 1] = data[j];
             j = j - 1;
         }
-        col->data[j + 1] = key;
+        data[j + 1] = key;
     }
 }
-
-
-
 void sort(COLUMN* col, int sort_dir) {
-    col->sort_dir = sort_dir;
-
-    if (col->valid_index == 0) {
-        quicksort(col, 0, col->size - 1);
-    } else if (col->valid_index == -1) {
-        insertion_sort(col);
+    if (!col || !col->data) {
+        printf("Invalid column or column data.\n");
+        return;
     }
 
-    col->valid_index = 1;  // Column is now fully sorted
+    col->sort_dir = sort_dir;  // Set the sorting direction
+    int n = col->size;
+
+    if (col->valid_index == 0) {  // Not sorted at all
+        quicksort(col->data, 0, n - 1, col);
+    } else if (col->valid_index == -1) {  // Partially sorted (all but the last element)
+        insertion_sort(col->data, n, col);
+    } else if (col->valid_index == 1) {  // Already sorted, just sort if direction changed
+        if (sort_dir != col->sort_dir) {
+            quicksort(col->data, 0, n - 1, col);
+        }
+    }
+
+    col->valid_index = 1;  // Mark the column as fully sorted
+    printf("Column sorted successfully.\n");
 }
+
 
 void print_col_by_index(COLUMN *col) {
     for (int i = 0; i < col->size; i++) {
