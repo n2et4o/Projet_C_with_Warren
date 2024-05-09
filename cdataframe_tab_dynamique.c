@@ -1,10 +1,14 @@
 //
-// Created by 20220848 on 21/04/2024.
+// Created by 20220848 on 08/05/2024.
 //
 
-#include "cdataframe.h"
+#include "cdataframe_list.h"
 
-#define MAX_COLUMNS 50  // Définissez une limite sur le nombre de colonnes
+// ATTENTION pour utiliser des colonnes dynaniques, vous devriez mettre en commentaire le fichier "cdataframe_list.c" en ajoutant /* au debut et */ à la fin
+
+/*  // Supprimer cette ligne et la dernière pour pouvoir utiliser un CDataframe dynanique
+
+// ========
 
 CDATAFRAME *create_empty_cdataframe() {
     CDATAFRAME *cdf = (CDATAFRAME *)malloc(sizeof(CDATAFRAME));
@@ -25,6 +29,7 @@ CDATAFRAME *create_empty_cdataframe() {
     return cdf;
 }
 
+//==============
 
 CDATAFRAME *create_cdataframe(ENUM_TYPE *cdftype, int size) {
     CDATAFRAME *cdf = (CDATAFRAME *)malloc(sizeof(CDATAFRAME));
@@ -60,6 +65,8 @@ CDATAFRAME *create_cdataframe(ENUM_TYPE *cdftype, int size) {
     return cdf;
 }
 
+//============
+
 void delete_cdataframe(CDATAFRAME **cdf) {
     if (cdf == NULL || *cdf == NULL) {
         printf("Le dataframe est deja libere ou n'existe pas\n");
@@ -83,6 +90,9 @@ void delete_cdataframe(CDATAFRAME **cdf) {
     *cdf = NULL;
     printf("Dataframe supprime avec succes\n");
 }
+
+
+/========
 
 void delete_column_by_name(CDATAFRAME *cdf, char *col_name) {
     if (cdf == NULL || cdf->columns == NULL) {
@@ -276,22 +286,25 @@ void insert_value_process(CDATAFRAME *dataframe) {
     printf("Insertion dans la colonne '%s' de type '%s'.\n", col->title, getTypeName(col->column_type));
 
     for (int i = 0; i < count; i++) {
-        if (!insert_single_value(col)) {
-            printf("Echec de l'insertion a l'indice %d.\n", i);
-            break;  // Stop further insertions on failure
-        } else {
-            printf("Valeur inseree avec succes a l'indice %d dans '%s'.\n", i, col->title);
-        }
-        if ( i > 5) {  // Ask if more insertions are expected, unless it's the last one planned
-            printf("Voulez-vous continuer ? (Oui: o / Non: n): ");
-            char decision;
-            scanf(" %c", &decision);
-            getchar();  // Consume the newline character
-            if (decision == 'n' || decision == 'N') {
-                break;  // Break the loop if user decides not to continue
-            }
+    if (!insert_single_value(col)) {
+        printf("Echec de l'insertion a l'indice %d.\n", i);
+        break;  // Stop further insertions on failure
+    } else {
+        printf("Valeur inseree avec succes a l'indice %d dans '%s'.\n", i, col->title);
+    }
+
+    // Poser la question après chaque tranche de 5 insertions, sauf après la première
+    if ((i + 1) % 5 == 0 && i != count - 1) {  // Checking i != count - 1 prevents asking when insertion is done
+        printf("Voulez-vous continuer ? (Oui: o / Non: n): ");
+        char decision;
+        scanf(" %c", &decision);
+        getchar();  // Consume the newline character
+        if (decision == 'n' || decision == 'N') {
+            break;  // Break the loop if user decides not to continue
         }
     }
+}
+
 }
 
 int insert_single_value(COLUMN* col) {
@@ -409,24 +422,25 @@ void print_multiple_cols(CDATAFRAME *dataframe, int start, int end) {
 
     // Afficher les titres des colonnes
     for (int i = start; i <= end; i++) {
-        printf("Colonne %d : %s\t", i, dataframe->columns[i]->title);
+        printf("Colonne %d : %-20s     ", i, dataframe->columns[i]->title); // Ajustez -20 selon la longueur maximale du titre
     }
     printf("\n");
 
     // Afficher les données des colonnes
     for (int row = 0; row < max_rows; row++) {
         for (int col = start; col <= end; col++) {
+            char str[20]; // Taille suffisante pour stocker la conversion de la valeur
             if (row < dataframe->columns[col]->size) {
-                char str[20]; // Taille suffisante pour stocker la conversion de la valeur
                 convert_value(dataframe->columns[col], row, str, sizeof(str));
-                printf(" [%d] : %s\t", row, str);
+                printf(" [%d] : %-20s     ", row, str); // Utilisez %-20 pour justifier à gauche et ajustez selon le besoin
             } else {
-                printf(" [%d] : NULL\t", row);  // Afficher NULL pour les indices hors limites
+                printf(" [%d] : %-20s     ", row, "NULL");  // Afficher NULL pour les indices hors limites, avec ajustement de l'espace
             }
         }
         printf("\n");
     }
 }
+
 
 void search_columns_process(CDATAFRAME *dataframe) {
     if (dataframe == NULL || dataframe->num_columns == 0) {
@@ -508,82 +522,6 @@ void search_columns_process(CDATAFRAME *dataframe) {
             break;
     }
 }
-void sort_columns_process(CDATAFRAME *dataframe) {
-    if (dataframe == NULL || dataframe->num_columns == 0) {
-        printf("Aucune colonne n'a encore ete creee.\n");
-        return;
-    }
-
-    printf("Tri des colonnes...\n");
-    printf("Voulez-vous trier :\n"
-           "1 - Une colonne en particulier\n"
-           "2 - Plusieurs colonnes\n"
-           "3 - Toutes les colonnes\n"
-           "4 - Retourner au menu precedent\n");
-    int choice;
-    printf("Entrez votre choix : ");
-    scanf("%d", &choice);
-
-    int index, start, end;
-    int sort_dir = ASC;  // Default to ascending
-    char direction;
-
-    switch (choice) {
-        case 1:
-            printf("Entrez le numero de la colonne a trier (0 a %d) : ", dataframe->num_columns - 1);
-            scanf("%d", &index);
-            if (index < 0 || index >= dataframe->num_columns) {
-                printf("Index invalide.\n");
-                return;
-            }
-
-            printf("Choisissez la direction du tri (A pour ascendant, D pour descendant): ");
-            scanf(" %c", &direction);
-            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
-
-            sort(dataframe->columns[index], sort_dir);
-            printf("Colonne %d triee.\n", index);
-            break;
-
-        case 2:
-            printf("Entrez les indices de debut et de fin pour le tri (ex: 1 3 pour trier de la colonne 1 a 3) : ");
-            scanf("%d %d", &start, &end);
-            if (start < 0 || end >= dataframe->num_columns || start > end) {
-                printf("Indices invalides.\n");
-                return;
-            }
-
-            printf("Choisissez la direction du tri (A pour ascendant, D pour descendant): ");
-            scanf(" %c", &direction);
-            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
-
-            for (int i = start; i <= end; i++) {
-                sort(dataframe->columns[i], sort_dir);
-                printf("Colonne %d triee.\n", i);
-            }
-            break;
-
-        case 3:
-            printf("Choisissez la direction du tri pour toutes les colonnes (A pour ascendant, D pour descendant): ");
-            scanf(" %c", &direction);
-            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
-
-            for (int i = 0; i < dataframe->num_columns; i++) {
-                sort(dataframe->columns[i], sort_dir);
-                printf("Colonne %d triee.\n", i);
-            }
-            break;
-
-        case 4:
-            printf("Retour au menu precedent.\n");
-            return;
-
-        default:
-            printf("Choix non valide.\n");
-            break;
-    }
-}
-
 
 void delete_columns_process(CDATAFRAME *dataframe) {
     if (dataframe == NULL || dataframe->num_columns == 0) {
@@ -673,32 +611,79 @@ void delete_columns_process(CDATAFRAME *dataframe) {
     }
 }
 
+void sort_columns_process(CDATAFRAME *dataframe) {
+    if (dataframe == NULL || dataframe->num_columns == 0) {
+        printf("Aucune colonne n'a encore ete creee.\n");
+        return;
+    }
 
-void explain_cdataframe() {
-    printf("Qu'est ce qu'un CDataframe ?\n");
-    sleep(2.5);
-    printf("Un CDataframe est un dataframe en languague C\n");
-    sleep(2.5);
-    printf("Alors qu'est ce qu'un Dataframe ?\n");
-    sleep(2.5);
-    printf("Dans les langages d'analyse de donnees,");
-    sleep(2.5);
-    printf( "un dataframe est une structure de donnees tabulaire,\nc'est-a-dire qu'elle est composee de lignes et de colonnes,\n");
-    sleep(2.5);
-    printf("ou chaque colonne peut contenir des donnees d'un type different. Les dataframes permettent de stocker,\n");
-    sleep(2.5);
-    printf("de manipuler et d'analyser des donnees structurees de maniere efficace et intuitive.\n\n");
-    sleep(2.5);
-    printf("A quoi sert un CDataframe ?\n");
-    sleep(2.5);
-    printf("* Stockage Tabulaire de Donnees: Comme un tableau ou un ensemble de tableaux qui stockent \n\t\t\tdes donnees structurees en lignes et en colonnes.\n");
-    sleep(2.5);
-    printf("* Heterogeneite des Types: La capacite de stocker differents types de donnees \n\t\t\t(par exemple, des entiers, des flottants, des chaines de caracteres) ");
-    sleep(2.5);
-    printf("\n\t\t\tdans differentes colonnes, ce qui est different d'un tableau C standard\n\t\t\t qui ne peut stocker qu'un seul type de donnees.\n");
-    sleep(2.5);
-    printf("* Manipulation de Donnees: Des fonctions associees pour trier, filtrer, regrouper \n\t\t\tet effectuer d'autres operations sur les donnees.\n");
-    sleep(2.5);
-    printf("* Analyse de Donnees: Des outils integres ou supplementaires qui permettent \n\t\t\tde calculer des statistiques descriptives, de construire des modeles, etc.\n\n");
-    sleep(2.5);
+    printf("Tri des colonnes...\n");
+    printf("Voulez-vous trier :\n"
+           "1 - Une colonne en particulier\n"
+           "2 - Plusieurs colonnes\n"
+           "3 - Toutes les colonnes\n"
+           "4 - Retourner au menu precedent\n");
+    int choice;
+    printf("Entrez votre choix : ");
+    scanf("%d", &choice);
+
+    int index, start, end;
+    int sort_dir = ASC;  // Default to ascending
+    char direction;
+
+    switch (choice) {
+        case 1:
+            printf("Entrez le numero de la colonne a trier (0 a %d) : ", dataframe->num_columns - 1);
+            scanf("%d", &index);
+            if (index < 0 || index >= dataframe->num_columns) {
+                printf("Index invalide.\n");
+                return;
+            }
+
+            printf("Choisissez la direction du tri (A pour ascendant, D pour descendant): ");
+            scanf(" %c", &direction);
+            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
+
+            sort(dataframe->columns[index], sort_dir);
+            printf("Colonne %d triee.\n", index);
+            break;
+
+        case 2:
+            printf("Entrez les indices de debut et de fin pour le tri (ex: 1 3 pour trier de la colonne 1 a 3) : ");
+            scanf("%d %d", &start, &end);
+            if (start < 0 || end >= dataframe->num_columns || start > end) {
+                printf("Indices invalides.\n");
+                return;
+            }
+
+            printf("Choisissez la direction du tri (A pour ascendant, D pour descendant): ");
+            scanf(" %c", &direction);
+            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
+
+            for (int i = start; i <= end; i++) {
+                sort(dataframe->columns[i], sort_dir);
+                printf("Colonne %d triee.\n", i);
+            }
+            break;
+
+        case 3:
+            printf("Choisissez la direction du tri pour toutes les colonnes (A pour ascendant, D pour descendant): ");
+            scanf(" %c", &direction);
+            sort_dir = (direction == 'A' || direction == 'a') ? ASC : DESC;
+
+            for (int i = 0; i < dataframe->num_columns; i++) {
+                sort(dataframe->columns[i], sort_dir);
+                printf("Colonne %d triee.\n", i);
+            }
+            break;
+
+        case 4:
+            printf("Retour au menu precedent.\n");
+            return;
+
+        default:
+            printf("Choix non valide.\n");
+            break;
+    }
 }
+ */

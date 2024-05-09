@@ -1,10 +1,14 @@
 //
-// Created by 20220848 on 31/03/2024.
+// Created by 20220848 on 08/05/2024.
 //
+#include "column_list.h"
 
-#include "column.h"
+// ATTENTION pour utiliser des colonnes dynaniques, vous devriez mettre en commentaire le fichier "column_list.c" en ajoutant /* au debut et */ à la fin
+
+/*  // Supprimer cette ligne et la dernière pour pouvoir utiliser des colonnes dynaniques
 
 // ============= Création de la fonction create_column ===============
+
 COLUMN* create_column(ENUM_TYPE type, char* title) {
     COLUMN* new_column = (COLUMN*)malloc(sizeof(COLUMN));
     if (new_column == NULL) {
@@ -35,6 +39,7 @@ COLUMN* create_column(ENUM_TYPE type, char* title) {
 }
 
 // ============= Création de la fonction insert_value ===============
+
 int insert_value(COLUMN *col, void *value) {
     if (col == NULL) {
         return 0;
@@ -115,6 +120,7 @@ int insert_value(COLUMN *col, void *value) {
 }
 
 // ============ Création de la fonction delete_column =============
+
 void delete_column(COLUMN** col) {
     if (*col == NULL) {
         printf("La colonne est déjà libérée ou n'existe pas\n");
@@ -143,7 +149,9 @@ void delete_column(COLUMN** col) {
     // Mettre le pointeur de la colonne à NULL
     *col = NULL;
 }
+
 // ================= Création de la fonction print_col ======================
+
 void print_col(COLUMN* col) {
     if (col == NULL) {
         printf("Column is NULL\n");
@@ -163,7 +171,54 @@ void print_col(COLUMN* col) {
     }
 }
 
+void convert_value(COLUMN* col, unsigned long long int i, char* str, int size) {
+    if (col == NULL || str == NULL || i >= col->size) {
+        snprintf(str, size, "%s", "ERROR");
+        return;
+    }
+
+    // Assurez-vous que la chaîne est nulle au départ pour éviter l'écriture de déchets
+    memset(str, 0, size);
+
+    if (col->data[i] == NULL) {
+        snprintf(str, size, "%s", "NULL");
+        return;
+    }
+
+    switch(col->column_type) {
+        case UINT:
+            snprintf(str, size, "%u", *((unsigned int*)col->data[i]));
+            break;
+        case INT:
+            snprintf(str, size, "%d", *((int*)col->data[i]));
+            break;
+        case CHAR:
+            snprintf(str, size, "%c", *((char*)col->data[i]));
+            break;
+        case FLOAT:
+            // Pour les floats, vous pourriez vouloir contrôler la précision, par exemple "%.2f" pour deux décimales.
+            snprintf(str, size, "%f", *((float*)col->data[i]));
+            break;
+        case DOUBLE:
+            // De même, "%.lf" pour les doubles avec une précision contrôlée si nécessaire.
+            snprintf(str, size, "%lf", *((double*)col->data[i]));
+            break;
+        case STRING:
+            snprintf(str, size, "%s", (char*)col->data[i]);
+            break;
+        case STRUCTURE:
+            // Vous devrez implémenter la logique de conversion de votre structure en chaîne ici.
+            // Par exemple, si vous avez une structure avec un entier et un flottant, vous pourriez faire :
+            // snprintf(str, size, "{int: %d, float: %f}", your_structure->int_field, your_structure->float_field);
+            break;
+        default:
+            snprintf(str, size, "%s", "UNKNOWN TYPE");
+            break;
+    }
+}
+
 // ========= Création de la fonction qui retourner le nombre de d’occurrences d’une valeur x (x donné en paramètre) ======
+
 void nb_occ(COLUMN* col, void* x) {
     int count = 0;
     ENUM_TYPE type = col->column_type;
@@ -203,7 +258,7 @@ void nb_occ(COLUMN* col, void* x) {
     if (x == NULL) {
         printf("Le nombre d'occurrences de la valeur NULL est : %d\n", count);
     } else {
-        // Assuming x is a pointer to a type that matches the column type
+        // Assuming x is a pointer to a type that matches the column_list type
         switch (type) {
             case INT:
             case UINT:
@@ -228,8 +283,8 @@ void nb_occ(COLUMN* col, void* x) {
     }
 }
 
-
 // ========= Création de la fonction qui retourner la valeur présente à la position x (x donné en paramètre) ======
+
 void pos_val(COLUMN* col, unsigned int x) {
     if (col == NULL || x >= col->size) {
         printf("Position invalide\n");
@@ -241,7 +296,7 @@ void pos_val(COLUMN* col, unsigned int x) {
         return;
     }
 
-    // Determine and print the value based on the type stored in the column
+    // Determine and print the value based on the type stored in the column_list
     switch (col->column_type) {
         case INT:
             printf("La valeur a la position %u est : %d\n", x, *((int*)col->data[x]));
@@ -271,10 +326,11 @@ void pos_val(COLUMN* col, unsigned int x) {
     }
 }
 
+
 // ========= Création de la fonction qui retourner le nombre de valeurs qui sont supérieures à x (x donné en paramètre) =====
 void nb_val_supe(COLUMN* col, void* x) {
     if (col == NULL) {
-        printf("Invalid column reference\n");
+        printf("Invalid column_list reference\n");
         return;
     }
 
@@ -324,7 +380,9 @@ void nb_val_supe(COLUMN* col, void* x) {
     }
 }
 
+
 // ========= Création de la fonction qui retourner le nombre de valeurs qui sont inférieures à x (x donné en paramètre) ======
+
 void nb_val_inf(COLUMN* col, void* x) {
     if (col == NULL || x == NULL) {
         printf("Invalid input\n");
@@ -370,7 +428,11 @@ void nb_val_inf(COLUMN* col, void* x) {
     }
 }
 
+
+
 // ========= Création de la fonction qui retourner le nombre de valeurs qui sont égales à x (x donné en paramètre) ======
+
+
 void nb_val_egal(COLUMN* col, void* x) {
     if (col == NULL || x == NULL) {
         printf("Invalid input or comparison to NULL is not supported for non-pointer types\n");
@@ -422,54 +484,7 @@ void nb_val_egal(COLUMN* col, void* x) {
     }
 }
 
-
-void convert_value(COLUMN* col, unsigned long long int i, char* str, int size) {
-    if (col == NULL || str == NULL || i >= col->size) {
-        snprintf(str, size, "%s", "ERROR");
-        return;
-    }
-
-    // Assurez-vous que la chaîne est nulle au départ pour éviter l'écriture de déchets
-    memset(str, 0, size);
-
-    if (col->data[i] == NULL) {
-        snprintf(str, size, "%s", "NULL");
-        return;
-    }
-
-    switch(col->column_type) {
-        case UINT:
-            snprintf(str, size, "%u", *((unsigned int*)col->data[i]));
-            break;
-        case INT:
-            snprintf(str, size, "%d", *((int*)col->data[i]));
-            break;
-        case CHAR:
-            snprintf(str, size, "%c", *((char*)col->data[i]));
-            break;
-        case FLOAT:
-            // Pour les floats, vous pourriez vouloir contrôler la précision, par exemple "%.2f" pour deux décimales.
-            snprintf(str, size, "%f", *((float*)col->data[i]));
-            break;
-        case DOUBLE:
-            // De même, "%.lf" pour les doubles avec une précision contrôlée si nécessaire.
-            snprintf(str, size, "%lf", *((double*)col->data[i]));
-            break;
-        case STRING:
-            snprintf(str, size, "%s", (char*)col->data[i]);
-            break;
-        case STRUCTURE:
-            // Vous devrez implémenter la logique de conversion de votre structure en chaîne ici.
-            // Par exemple, si vous avez une structure avec un entier et un flottant, vous pourriez faire :
-            // snprintf(str, size, "{int: %d, float: %f}", your_structure->int_field, your_structure->float_field);
-            break;
-        default:
-            snprintf(str, size, "%s", "UNKNOWN TYPE");
-            break;
-    }
-}
-
-// Function to compare two COL_TYPE values based on the column type
+// Function to compare two COL_TYPE values based on the column_list type
 int compare(COL_TYPE *a, COL_TYPE *b, COLUMN *col) {
     if (col->sort_dir == ASC) {  // Ascending order
         switch (col->column_type) {
@@ -484,7 +499,7 @@ int compare(COL_TYPE *a, COL_TYPE *b, COLUMN *col) {
             case STRING:
                 return strcmp((char *)a, (char *)b);
             default:
-                printf("Unsupported column type for sorting.\n");
+                printf("Unsupported column_list type for sorting.\n");
                 return 0;
         }
     } else {  // Descending order
@@ -500,7 +515,7 @@ int compare(COL_TYPE *a, COL_TYPE *b, COLUMN *col) {
             case STRING:
                 return strcmp((char *)b, (char *)a);
             default:
-                printf("Unsupported column type for sorting.\n");
+                printf("Unsupported column_list type for sorting.\n");
                 return 0;
         }
     }
@@ -546,7 +561,7 @@ void insertion_sort(COL_TYPE **data, int n, COLUMN *col) {
 }
 void sort(COLUMN* col, int sort_dir) {
     if (!col || !col->data) {
-        printf("Invalid column or column data.\n");
+        printf("Invalid column_list or column_list data.\n");
         return;
     }
 
@@ -563,29 +578,8 @@ void sort(COLUMN* col, int sort_dir) {
         }
     }
 
-    col->valid_index = 1;  // Mark the column as fully sorted
+    col->valid_index = 1;  // Mark the column_list as fully sorted
     printf("Column sorted successfully.\n");
 }
 
-
-void print_col_by_index(COLUMN *col) {
-    for (int i = 0; i < col->size; i++) {
-        printf("[%llu] ", col->index[i]);
-        switch (col->column_type) {
-            case INT:
-                printf("%d\n", col->data[i]->int_value);
-                break;
-            case FLOAT:
-                printf("%f\n", col->data[i]->float_value);
-                break;
-            case STRING:
-                printf("%s\n", col->data[i]->string_value);
-                break;
-            default:
-                printf("Unknown Type\n");
-        }
-    }
-}
-
-
-
+ */

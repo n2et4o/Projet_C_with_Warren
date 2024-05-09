@@ -3,7 +3,7 @@
 //
 /*
  * str[N];
-    mycol = create_column(INT, "My column");
+    mycol = create_column(INT, "My column_list");
     int o = 52, p = 44, n = 15, d = 18;
     int *nul = NULL;
     insert_value(mycol, &o);

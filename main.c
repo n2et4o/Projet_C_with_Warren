@@ -1,7 +1,7 @@
 //
 // Created by 20220848 on 31/03/2024.
 //
-#include "cdataframe.h"
+#include "cdataframe_list.h"
 #define N 5
 
 int main(){
@@ -13,23 +13,23 @@ int main(){
 
 /*
      * test
-     * COLUMN *mycol1 = create_column(STRUCTURE,"My column");
+     * COLUMN *mycol1 = create_column(STRUCTURE,"My column_list");
     int az = 1;char aq = 'e';float re = 3.5;
     insert_value(mycol1,&az);
     insert_value(mycol1,&aq);
     insert_value(mycol1,&re);
     print_col(mycol1);
     printf("start\n");
-    COLUMN *mycol = create_column(INT,"My column");
+    COLUMN *mycol = create_column(INT,"My column_list");
     int val = 5;
     if (insert_value(mycol, &val)){
-        printf("Value added successfully to my column\n");}
+        printf("Value added successfully to my column_list\n");}
     else{
-        printf("Error adding value to my column\n");}
+        printf("Error adding value to my column_list\n");}
 
     delete_column(&mycol);
     int b = 53;
-    mycol = create_column(INT,"My column");
+    mycol = create_column(INT,"My column_list");
     insert_value(mycol, &b);
     b =42;
     insert_value(mycol, &b);
@@ -51,7 +51,7 @@ int main(){
 
     nb_val_egal(mycol, &a);
 
-    mycol = create_column(CHAR, "My column");
+    mycol = create_column(CHAR, "My column_list");
     char j = 'A', c = 'C';
     insert_value(mycol, &j);
     insert_value(mycol, NULL);
@@ -60,7 +60,7 @@ int main(){
 
     printf("\ntest\n");
     char str[5];
-    mycol = create_column(INT, "My column");
+    mycol = create_column(INT, "My column_list");
     int ac = 52, bc = 44, cc = 15, dc = 18;
     insert_value(mycol, &ac);
     insert_value(mycol, &bc);
@@ -71,7 +71,7 @@ int main(){
     delete_column(&mycol);
     printf("end test\n\n");
 
-    mycol = create_column(INT, "sorted column");
+    mycol = create_column(INT, "sorted column_list");
     int ab = 52;
     int bb = 44;
     int cb = 15;
@@ -92,7 +92,7 @@ int main(){
     printf("reussite\n");
 
     delete_column(&mycol);
-    mycol = create_column(STRING, "String column");
+    mycol = create_column(STRING, "String column_list");
     char et[234] = "Lima";
     char tr[234] ="Bravo";
     char ty[234] ="Zulu";

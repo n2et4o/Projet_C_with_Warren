@@ -1,11 +1,12 @@
 //
 // Created by 20220848 on 20/04/2024.
 //
-#include "cdataframe.h"
+#include "cdataframe_list.h"
 
 
-void menu(){
-    printf("Bonjour !\n");
+/*
+ * void menu(){
+    printf("Bonjour ! \n");
     sleep(1);
     printf("Bienvenue sur votre CDataframe.\n\n");
     sleep(1);
@@ -18,8 +19,8 @@ void menu(){
     while (go) {
         printf("1 - Commencez\n"
                "2 - Credit\n"
-               "3 - Comment ca marche ?\n"
-               "4 - C'est quoi un CDataframe et a quoi ca sert ?\n"
+               "3 - Comment ça marche ?\n"
+               "4 - C'est quoi un CDataframe et à quoi ça sert ?\n"
                "5 - Quitter\n");
         printf("Entrez votre choix : ");
         scanf(" %c", &choice);  // Assurez-vous de capturer les blancs avant le caractère
@@ -28,15 +29,15 @@ void menu(){
         switch (choice) {
             case '1':
                 do {
-                    printf("1 - Creez une colonne\n"
-                           "2 - Inserez une valeur dans une colonne\n"
-                           "3 - Affichez une colonne\n"
-                           "4 - Recherchez dans une colonne\n"
-                           "5 - Triez une colonne\n"
-                           "6 - Supprimez une colonne\n"
-                           "7 - Retournez au menu principal\n"
-                           "8 - Quittez le programme\n");
-                    printf("Entrez votre choix : ");
+                    printf("1 - Creer une colonne\n"
+                           "2 - Inserer une valeur dans une colonne\n"
+                           "3 - Afficher une colonne\n"
+                           "4 - Rechercher dans une colonne\n"
+                           "5 - Trier une colonne\n"
+                           "6 - Supprimer une colonne\n"
+                           "7 - Retourner au menu principal\n"
+                           "8 - Quitter le programme\n");
+                    printf("Entrer votre choix : ");
                     scanf(" %c", &step1);
 
                     switch(step1) {
@@ -45,14 +46,14 @@ void menu(){
                                 printf("Nombre maximum de colonnes atteint.\n");
                                 break;
                             }
-                            printf("Creation d'une colonne...\n");
+                            printf("Création d'une colonne...\n");
                             char name_col[256];
-                            printf("Nommez votre colonne: ");
+                            printf("Nommer votre colonne: ");
                             scanf("%s",name_col);
                             fgets(name_col, sizeof(name_col), stdin);
                             name_col[strcspn(name_col, "\n")] = 0;
 
-                            printf("Choisissez le type de colonne que vous voulez creer :\n"
+                            printf("Choisisser le type de colonne que vous voulez créer :\n"
                                    "1 - Colonne d'entier\n"
                                    "2 - Colonne de reel\n"
                                    "3 - Colonne de caracteres\n"
@@ -65,19 +66,19 @@ void menu(){
 
                             switch (dstep1) {
                                 case '1':
-                                    mycols[index] = create_column(INT, name_col);
+                                    mycols[index] = create_column(MY_INT, name_col);
                                     break;
                                 case '2':
-                                    mycols[index] = create_column(FLOAT, name_col);
+                                    mycols[index] = create_column(MY_FLOAT, name_col);
                                     break;
                                 case '3':
-                                    mycols[index] = create_column(CHAR, name_col);
+                                    mycols[index] = create_column(MY_CHAR, name_col);
                                     break;
                                 case '4':
                                     mycols[index] = create_column(STRING, name_col);
                                     break;
                                 case '5':
-                                    mycols[index] = create_column(DOUBLE, name_col);
+                                    mycols[index] = create_column(MY_DOUBLE, name_col);
                                     break;
                                 case '6':
                                     mycols[index] = create_column(STRUCTURE, name_col);
@@ -108,7 +109,7 @@ void menu(){
                                 break;
                             }
                             switch (mycols[col_index]->column_type) {
-                                case INT:
+                                case MY_INT:
                                     // Exemple pour un entier, modifiez selon le type attendu
                                     int val;
                                     printf("Saississez une valeur entiere:\n");
@@ -119,7 +120,7 @@ void menu(){
                                         printf("Valeur inseree avec succes.\n");
                                     }
                                     break;
-                                case FLOAT:
+                                case MY_FLOAT:
                                     // Exemple pour un entier, modifiez selon le type attendu
                                     float fval;
                                     printf("Saississez une valeur reelle:\n");
@@ -130,7 +131,7 @@ void menu(){
                                         printf("Valeur inseree avec succes.\n");
                                     }
                                     break;
-                                case DOUBLE:
+                                case MY_DOUBLE:
                                     // Exemple pour un entier, modifiez selon le type attendu
                                     double dval;
                                     printf("Saississez une valeur reelle longue:\n");
@@ -141,7 +142,7 @@ void menu(){
                                         printf("Valeur inseree avec succes.\n");
                                     }
                                     break;
-                                case CHAR:
+                                case MY_CHAR:
                                     // Exemple pour un entier, modifiez selon le type attendu
                                     char cval;
                                     printf("Saissisez un caractere :\n");
@@ -335,11 +336,17 @@ void menu(){
         }
     }
 }
+ */
 
 
 
 
 void menu2() {
+    // Changer le code page de la console en UTF-8
+    SetConsoleOutputCP(CP_UTF8);
+    // Activer le support pour les séquences d'échappement ANSI qui peut aider dans certains cas
+    system("chcp 65001");
+    // Assurez-vous que votre éditeur enregistre ce fichier en UTF-8
     printf("Bonjour !\n");
     sleep(1);
     printf("Bienvenue sur votre CDataframe.\n\n");
@@ -349,16 +356,16 @@ void menu2() {
     // Création d'une dataframe vide initial
     CDATAFRAME *dataframe = create_empty_cdataframe();
     if (dataframe == NULL) {
-        fprintf(stderr, "Failed to create an initial empty dataframe.\n");
+        fprintf(stderr, "XzzzzX.\n");
         return;  // En cas d'échec de la création, arrête le programme
     }    int go = 1;
     char choice;
 
     while (go) {
-        printf("1 - Commencez\n"
+        printf("1 - Commencer\n"
                "2 - Credit\n"
-               "3 - Comment ca marche ?\n"
-               "4 - C'est quoi un CDataframe et a quoi ca sert ?\n"
+               "3 - Comment ça marche ?\n"
+               "4 - C'est quoi un CDataframe et à quoi ça sert ?\n"
                "5 - Quitter\n");
         printf("Entrez votre choix : ");
         scanf(" %c", &choice);  // Assurez-vous de capturer les blancs avant le caractère
@@ -368,15 +375,15 @@ void menu2() {
             case '1': {
                 char step1;
                 do {
-                    printf("1 - Creez une colonne\n"
-                           "2 - Inserez une valeur dans une colonne\n"
-                           "3 - Affichez une colonne\n"
-                           "4 - Recherchez dans une colonne\n"
-                           "5 - Triez une colonne\n"
-                           "6 - Supprimez une colonne\n"
-                           "7 - Retournez au menu principal\n"
-                           "8 - Quittez le programme\n");
-                    printf("Entrez votre choix : ");
+                    printf("1 - Creer une colonne\n"
+                           "2 - Inserer une valeur dans une colonne\n"
+                           "3 - Afficher une colonne\n"
+                           "4 - Rechercher dans une colonne\n"
+                           "5 - Trier une colonne\n"
+                           "6 - Supprimer une colonne\n"
+                           "7 - Retourner au menu principal\n"
+                           "8 - Quitter le programme\n");
+                    printf("Entrer votre choix : ");
                     scanf(" %c", &step1);
 
                     switch(step1) {
