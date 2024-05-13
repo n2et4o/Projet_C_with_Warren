@@ -6,7 +6,7 @@
 
 // ATTENTION pour utiliser des colonnes dynaniques, vous devriez mettre en commentaire le fichier "cdataframe_list.c" en ajoutant /* au debut et */ à la fin
 
-/*  // Supprimer cette ligne et la dernière pour pouvoir utiliser un CDataframe dynanique
+ // Supprimer cette ligne et la dernière pour pouvoir utiliser un CDataframe dynanique
 
 // ========
 
@@ -92,7 +92,7 @@ void delete_cdataframe(CDATAFRAME **cdf) {
 }
 
 
-/========
+//========
 
 void delete_column_by_name(CDATAFRAME *cdf, char *col_name) {
     if (cdf == NULL || cdf->columns == NULL) {
@@ -196,11 +196,11 @@ void create_column_process(CDATAFRAME *dataframe) {
         clean_stdin();  // Nettoyer le buffer après la lecture d'un caractère
 
         switch (choice) {
-            case '1': col_type = INT; break;
-            case '2': col_type = FLOAT; break;
-            case '3': col_type = CHAR; break;
+            case '1': col_type = MY_INT; break;
+            case '2': col_type = MY_FLOAT; break;
+            case '3': col_type = MY_CHAR; break;
             case '4': col_type = STRING; break;
-            case '5': col_type = DOUBLE; break;
+            case '5': col_type = MY_DOUBLE; break;
             case '6': col_type = STRUCTURE; printf("Bientot disponible.\n"); continue;
             case '7': printf("Creation annulee. Retour.\n"); return;
             default: printf("Choix invalide. Retour au menu de creation.\n"); continue;
@@ -234,15 +234,16 @@ void create_column_process(CDATAFRAME *dataframe) {
 
 const char* getTypeName(ENUM_TYPE type) {
     switch(type) {
-        case INT: return "INT";
-        case FLOAT: return "FLOAT";
-        case CHAR: return "CHAR";
+        case MY_INT: return "INT";
+        case MY_FLOAT: return "FLOAT";
+        case MY_CHAR: return "CHAR";
         case STRING: return "STRING";
-        case DOUBLE: return "DOUBLE";
+        case MY_DOUBLE: return "DOUBLE";
         case STRUCTURE: return "STRUCTURE";
         default: return "UNKNOWN";
     }
 }
+int position;
 
 void insert_value_process(CDATAFRAME *dataframe) {
     if (dataframe == NULL || dataframe->num_columns == 0) {
@@ -266,6 +267,38 @@ void insert_value_process(CDATAFRAME *dataframe) {
         return;
     }
 
+    if (col->size == 0){
+        position = 0;
+    }
+    else{
+        printf("Choisissez le mode d'insertion :\n"
+               "1 - En tête\n"
+               "2 - En queue\n"
+               "3 - À une position précise\n");
+        int choice;
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                position = 0;
+                break;
+            case 2:
+                position = col->size;
+                break;
+            case 3:
+                printf("Entrez la position (entre 0 et %d) :\n", col->size);
+                scanf("%d", &position);
+                if (position < 0 || position > col->size) {
+                    printf("Position invalide.\n");
+                    //return 0;
+                }
+                break;
+            default:
+                printf("Choix invalide.\n");
+                //return 0;
+        }
+    }
+
     printf("Combien d'insertions voulez-vous realiser ?\n"
            "1 - Une seule\n"
            "2 - Plusieurs\n"
@@ -273,6 +306,8 @@ void insert_value_process(CDATAFRAME *dataframe) {
     char insert_choice;
     scanf(" %c", &insert_choice);
     getchar();  // Consume the newline character
+
+
 
     int count = 1;  // Default is one insertion unless specified otherwise
     if (insert_choice == '2') {
@@ -307,42 +342,44 @@ void insert_value_process(CDATAFRAME *dataframe) {
 
 }
 
+
 int insert_single_value(COLUMN* col) {
+
     switch (col->column_type) {
-        case INT: {
+        case MY_INT: {
             int val;
             printf("Saisissez une valeur entiere:\n");
             scanf("%d", &val);
             getchar();  // Consume the newline character
-            return insert_value(col, &val);  // Assuming insert_value returns 1 on success, 0 on failure
+            return insert_value(col, &val,position);  // Assuming insert_value returns 1 on success, 0 on failure
         }
-        case FLOAT: {
+        case MY_FLOAT: {
             float fval;
             printf("Saisissez une valeur reelle:\n");
             scanf("%f", &fval);
             getchar();  // Consume the newline character
-            return insert_value(col, &fval);
+            return insert_value(col, &fval,position);
         }
-        case DOUBLE: {
+        case MY_DOUBLE: {
             double dval;
             printf("Saisissez une valeur reelle longue:\n");
             scanf("%lf", &dval);
             getchar();  // Consume the newline character
-            return insert_value(col, &dval);
+            return insert_value(col, &dval,position);
         }
-        case CHAR: {
+        case MY_CHAR: {
             char cval;
             printf("Saisissez un caractere:\n");
             scanf(" %c", &cval);  // Notice the space before %c to consume any leftover newline characters
             getchar();  // Consume the newline character
-            return insert_value(col, &cval);
+            return insert_value(col, &cval,position);
         }
         case STRING: {
             char sval[256];
             printf("Saisissez une chaine de caracteres:\n");
             scanf(" %255s", sval);  // Use buffer limit to prevent overflow
             getchar();  // Consume the newline character
-            return insert_value(col, sval);
+            return insert_value(col, sval,position);
         }
         case STRUCTURE:
             printf("Insertion de structures non supportee actuellement.\n");
@@ -359,7 +396,52 @@ void print_columns_process(CDATAFRAME *dataframe) {
         printf("Aucune colonne n'a encore ete creee.\n");
         return;
     }
+    printf("1 - Afficher une colonne\n"
+           "2 - Afficher une ligne\n"
+           "3 - Afficher le nombre de lignes\n"
+           "4 - Afficher le nombre de colonnes\n "
+           "5 - Retourner au menu precedent\n");
+    char option1;
+    printf("Entrez votre choix : ");
+    scanf(" %c", &option1);
 
+    switch (option1) {
+        case '1': // Gestion de l'affichage des colonnes
+            handle_column_display(dataframe);
+            break;
+        case '2': // Gestion de l'affichage des lignes
+            handle_row_display(dataframe);
+            break;
+        case'3':
+            if (dataframe == NULL || dataframe->columns == NULL) {
+                printf("Dataframe non initialisé ou vide.\n");
+                return;
+            }
+
+            int max_rows = 0;
+            for (int i = 0; i < dataframe->num_columns; i++) {
+                if (dataframe->columns[i]->size > max_rows) {
+                    max_rows = dataframe->columns[i]->size;
+                }
+            }
+            printf("Nombre de lignes : %d\n", max_rows);
+            break;
+        case'4':
+            if (dataframe == NULL || dataframe->columns == NULL) {
+                printf("Dataframe non initialisé ou vide.\n");
+                return;
+            }
+            printf("Nombre de colonnes : %d\n", dataframe->num_columns);
+            break;
+        case '5':
+            return;
+        default:
+            printf("Choix non valide.\n");
+            break;
+    }
+}
+
+void handle_column_display(CDATAFRAME *dataframe) {
     printf("Affichage des colonnes...\n");
     printf("Que voulez-vous afficher :\n"
            "1 - Une colonne en particulier\n"
@@ -371,7 +453,7 @@ void print_columns_process(CDATAFRAME *dataframe) {
     printf("Entrez votre choix : ");
     scanf(" %c", &option);
 
-    int col_index, start, end, max_rows = 0;
+    int col_index, start, end;
     switch (option) {
         case '1':
             printf("Entrez le numero de la colonne que vous voulez afficher (0 a %d) : ", dataframe->num_columns - 1);
@@ -384,27 +466,20 @@ void print_columns_process(CDATAFRAME *dataframe) {
                 print_col(dataframe->columns[col_index]);
             }
             break;
-
         case '2':
             printf("Entrez l'indice de debut et de fin pour l'affichage des colonnes (ex: 1 3 pour afficher les colonnes 1 a 3) : ");
             scanf("%d %d", &start, &end);
-            printf("\n");
             if (start < 0 || end >= dataframe->num_columns || start > end) {
                 printf("Indices invalides.\n");
             } else {
                 print_multiple_cols(dataframe, start, end);
             }
             break;
-
         case '3':
-            printf("\n");
             print_multiple_cols(dataframe, 0, dataframe->num_columns - 1);
             break;
-
         case '4':
-            // Retourner au menu précédent (cette option ne fait rien ici, elle sert juste à sortir de la fonction)
-            return;
-
+            return; // Retourner au menu précédent
         default:
             printf("Choix non valide.\n");
             break;
@@ -422,7 +497,7 @@ void print_multiple_cols(CDATAFRAME *dataframe, int start, int end) {
 
     // Afficher les titres des colonnes
     for (int i = start; i <= end; i++) {
-        printf("Colonne %d : %-20s     ", i, dataframe->columns[i]->title); // Ajustez -20 selon la longueur maximale du titre
+        printf("Colonne %d : %-3s \t", i, dataframe->columns[i]->title); // Ajustez -20 selon la longueur maximale du titre
     }
     printf("\n");
 
@@ -432,9 +507,128 @@ void print_multiple_cols(CDATAFRAME *dataframe, int start, int end) {
             char str[20]; // Taille suffisante pour stocker la conversion de la valeur
             if (row < dataframe->columns[col]->size) {
                 convert_value(dataframe->columns[col], row, str, sizeof(str));
-                printf(" [%d] : %-20s     ", row, str); // Utilisez %-20 pour justifier à gauche et ajustez selon le besoin
+                printf(" [%d] : %-7s \t\t", row, str); // Utilisez %-20 pour justifier à gauche et ajustez selon le besoin
             } else {
-                printf(" [%d] : %-20s     ", row, "NULL");  // Afficher NULL pour les indices hors limites, avec ajustement de l'espace
+                printf(" [%d] : %-7s \t\t", row, "NULL");  // Afficher NULL pour les indices hors limites, avec ajustement de l'espace
+            }
+        }
+        printf("\n");
+    }
+}
+
+void handle_row_display(CDATAFRAME *dataframe) {
+    if (dataframe == NULL || dataframe->num_columns == 0) {
+        printf("Aucune donnée disponible.\n");
+        return;
+    }
+
+    printf("Affichage des lignes...\n"
+           "1 - Afficher une ligne spécifique\n"
+           "2 - Afficher un nombre limité de lignes\n"
+           "3 - Afficher toutes les lignes\n"
+           "4 - Retourner au menu précédent\n");
+
+    char option;
+    printf("Entrez votre choix : ");
+    scanf(" %c", &option);
+
+    int row_index;
+    switch (option) {
+        case '1':
+            printf("Entrez le numéro de la ligne que vous voulez afficher (0 à %d) : ", dataframe->columns[0]->size - 1);
+            scanf("%d", &row_index);
+            if (row_index < 0 || row_index >= dataframe->columns[0]->size) {
+                printf("Numéro de ligne invalide.\n");
+            } else {
+                print_single_row(dataframe, row_index);
+            }
+            break;
+
+        case '2':
+            print_limited_rows(dataframe);
+            break;
+
+        case '3':
+            print_multiple_cols(dataframe, 0, dataframe->num_columns - 1);
+            break;
+
+        case '4':
+            // Retourner au menu précédent
+            return;
+
+        default:
+            printf("Choix non valide.\n");
+            break;
+    }
+}
+
+void print_single_row(CDATAFRAME *dataframe, int row_index) {
+    if (row_index < 0 || row_index >= dataframe->columns[0]->size) {
+        printf("Numéro de ligne hors limite.\n");
+        return;
+    }
+    // Afficher les titres des colonnes
+    for (int i = 0; i < dataframe->num_columns; i++) {
+        printf("Colonne %-7s |\t", dataframe->columns[i]->title);
+    }
+    printf("\n");
+
+    // Afficher les données pour la ligne spécifiée
+    for (int col = 0; col < dataframe->num_columns; col++) {
+        char str[256]; // Taille suffisante pour la conversion des valeurs
+        if (row_index < dataframe->columns[col]->size) {
+            convert_value(dataframe->columns[col], row_index, str, sizeof(str));
+            printf(" [%d] : %-7s |\t\t", col,str);
+        } else {
+            printf(" [%d] : %-7s |\t\t", col,"NULL");
+        }
+    }
+    printf("\n");
+}
+
+
+void print_limited_rows(CDATAFRAME *dataframe) {
+    if (dataframe == NULL) {
+        printf("Le dataframe est vide.\n");
+        return;
+    }
+
+    int limit;
+    printf("Entrez le nombre de lignes à afficher entre (0 à %d) : ",dataframe->columns[0]->size - 1);
+    scanf("%d", &limit);
+
+    if (limit <= 0) {
+        printf("Nombre invalide de lignes à afficher.\n");
+        return;
+    }
+
+    // Assurez-vous que la limite n'est pas supérieure au nombre de lignes dans n'importe quelle colonne
+    int max_rows = 0;
+    for (int i = 0; i < dataframe->num_columns; i++) {
+        if (dataframe->columns[i]->size > max_rows) {
+            max_rows = dataframe->columns[i]->size;
+        }
+    }
+
+    if (limit > max_rows) {
+        limit = max_rows;
+    }
+
+    // Afficher les titres des colonnes
+    for (int i = 0; i < dataframe->num_columns; i++) {
+        printf("Colonne %-7s |\t", dataframe->columns[i]->title);  // Justifier le titre à gauche et ajuster la largeur si nécessaire
+    }
+    printf("\n");
+
+    // Afficher les lignes pour chaque colonne jusqu'à la limite
+    for (int row = 0; row < limit; row++) {
+        for (int col = 0; col < dataframe->num_columns; col++) {
+            char str[256];  // Taille suffisante pour stocker la conversion de la valeur
+            if (row < dataframe->columns[col]->size) {
+                convert_value(dataframe->columns[col], row, str, sizeof(str));
+                printf(" [%d] : %-7s |\t\t",row, str); // Justifier le texte à gauche
+            } else {
+                printf(" [%d] : %-7s |\t\t", row,"NULL"); // Afficher NULL pour les indices hors limites
             }
         }
         printf("\n");
@@ -478,7 +672,7 @@ void search_columns_process(CDATAFRAME *dataframe) {
     switch (option) {
         case '1': {
             unsigned int pos;
-            printf("Entrez la position de la valeur recherchee : ");
+            printf("Entrez la position de la valeur recherchee entre(0 à %d) : ",col->size);
             scanf("%u", &pos);
             pos_val(col, pos);
             break;
@@ -684,6 +878,37 @@ void sort_columns_process(CDATAFRAME *dataframe) {
         default:
             printf("Choix non valide.\n");
             break;
+
+
     }
 }
- */
+
+void explain_cdataframe() {
+    printf("Qu'est ce qu'un CDataframe ?\n");
+    sleep(2.5);
+    printf("Un CDataframe est un dataframe en languague C\n");
+    sleep(2.5);
+    printf("Alors qu'est ce qu'un Dataframe ?\n");
+    sleep(2.5);
+    printf("Dans les langages d'analyse de donnees,");
+    sleep(2.5);
+    printf( "un dataframe est une structure de donnees tabulaire,\nc'est-a-dire qu'elle est composee de lignes et de colonnes,\n");
+    sleep(2.5);
+    printf("ou chaque colonne peut contenir des donnees d'un type different. Les dataframes permettent de stocker,\n");
+    sleep(2.5);
+    printf("de manipuler et d'analyser des donnees structurees de maniere efficace et intuitive.\n\n");
+    sleep(2.5);
+    printf("A quoi sert un CDataframe ?\n");
+    sleep(2.5);
+    printf("* Stockage Tabulaire de Donnees: Comme un tableau ou un ensemble de tableaux qui stockent \n\t\t\tdes donnees structurees en lignes et en colonnes.\n");
+    sleep(2.5);
+    printf("* Heterogeneite des Types: La capacite de stocker differents types de donnees \n\t\t\t(par exemple, des entiers, des flottants, des chaines de caracteres) ");
+    sleep(2.5);
+    printf("\n\t\t\tdans differentes colonnes, ce qui est different d'un tableau C standard\n\t\t\t qui ne peut stocker qu'un seul type de donnees.\n");
+    sleep(2.5);
+    printf("* Manipulation de Donnees: Des fonctions associees pour trier, filtrer, regrouper \n\t\t\tet effectuer d'autres operations sur les donnees.\n");
+    sleep(2.5);
+    printf("* Analyse de Donnees: Des outils integres ou supplementaires qui permettent \n\t\t\tde calculer des statistiques descriptives, de construire des modeles, etc.\n\n");
+    sleep(2.5);
+}
+

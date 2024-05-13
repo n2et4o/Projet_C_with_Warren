@@ -1,122 +1,148 @@
 //
-// Created by 20220848 on 31/03/2024.
+// Created by 20220848 on 10/05/2024.
 //
 
 #include "column_list.h"
-/*
-// ============= Création de la fonction create_column ===============
 
 COLUMN* create_column(ENUM_TYPE type, char* title) {
-    COLUMN* new_column = (COLUMN*)malloc(sizeof(COLUMN));
+    COLUMN *new_column = (COLUMN*) malloc(sizeof(COLUMN));
     if (new_column == NULL) {
-        printf("Erreur d'allocation de memoire pour la nouvelle colonne\n");
+        fprintf(stderr, "Memory allocation failed for new column\n");
         return NULL;
     }
 
     new_column->title = strdup(title);
-    if (new_column->title == NULL) {
-        printf("Erreur d'allocation pour le titre\n");
+    new_column->size = 0;
+    new_column->max_size = 10; // Initial physical size
+    new_column->column_type = type;
+    new_column->data = (COL_TYPE**) calloc(new_column->max_size, sizeof(COL_TYPE*));
+    new_column->index = (unsigned long long int*) calloc(new_column->max_size, sizeof(unsigned long long int));
+    new_column->valid_index = 0;
+    new_column->sort_dir = 0;
+    new_column->head = NULL;
+    new_column->next = NULL;
+
+    if (new_column->data == NULL || new_column->index == NULL) {
+        free(new_column->title);
+        free(new_column->data);
+        free(new_column->index);
         free(new_column);
+        fprintf(stderr, "Memory allocation failed for column data\n");
         return NULL;
     }
-
-    new_column->size = 0;
-    new_column->column_type = type;
-    new_column->head = NULL;  // Initialise la tête de la liste chaînée à NULL
 
     return new_column;
 }
 
-
-// ============= Création de la fonction insert_value ===============
-
-int insert_value(COLUMN *col, void *value) {
+int insert_value(COLUMN *col, void *value, int position) {
     if (col == NULL) {
-        return 0;  // Échec si la colonne n'existe pas
+        return 0;
     }
 
-    // Création d'un nouveau nœud pour la valeur à insérer
-    LISTE * newNode = (LISTE*)malloc(sizeof(LISTE));
-    if (newNode == NULL) {
-        return 0;  // Échec de l'allocation mémoire pour le nouveau nœud
+    // Création d'un nouveau noeud pour la liste doublement chaînée
+    LISTE *new_node = malloc(sizeof(LISTE));
+    if (new_node == NULL) {
+        return 0;
     }
 
-    // Allocation et copie de la valeur en fonction du type de colonne
+    // Allocation et initialisation de la valeur selon le type de colonne
     switch (col->column_type) {
-        case MY_INT:
-            newNode->val = malloc(sizeof(int));
-            if (newNode->val == NULL) {
-                free(newNode);
+        case MY_UINT:
+            new_node->val = malloc(sizeof(unsigned int));
+            if (new_node->val == NULL) {
+                free(new_node);
                 return 0;
             }
-            *((int *)newNode->val) = *((int *)value);
+            *((unsigned int *)new_node->val) = *((unsigned int *)value);
+            break;
+        case MY_INT:
+            new_node->val = malloc(sizeof(int));
+            if (new_node->val == NULL) {
+                free(new_node);
+                return 0;
+            }
+            *((int *)new_node->val) = *((int *)value);
             break;
         case MY_CHAR:
-            newNode->val = malloc(sizeof(char));
-            if (newNode->val == NULL) {
-                free(newNode);
+            new_node->val = malloc(sizeof(char));
+            if (new_node->val == NULL) {
+                free(new_node);
                 return 0;
             }
-            *((char *)newNode->val) = *((char *)value);
+            *((char *)new_node->val) = *((char *)value);
             break;
         case MY_FLOAT:
-            newNode->val = malloc(sizeof(float));
-            if (newNode->val == NULL) {
-                free(newNode);
+            new_node->val = malloc(sizeof(float));
+            if (new_node->val == NULL) {
+                free(new_node);
                 return 0;
             }
-            *((float *)newNode->val) = *((float *)value);
+            *((float *)new_node->val) = *((float *)value);
             break;
         case MY_DOUBLE:
-            newNode->val = malloc(sizeof(double));
-            if (newNode->val == NULL) {
-                free(newNode);
+            new_node->val = malloc(sizeof(double));
+            if (new_node->val == NULL) {
+                free(new_node);
                 return 0;
             }
-            *((double *)newNode->val) = *((double *)value);
+            *((double *)new_node->val) = *((double *)value);
             break;
         case STRING:
-            newNode->val = strdup((char *)value);
-            if (newNode->val == NULL) {
-                free(newNode);
+            new_node->val = strdup((char *)value);
+            if (new_node->val == NULL) {
+                free(new_node);
                 return 0;
             }
             break;
         case STRUCTURE:
-            newNode->val = malloc(sizeof(MyStruct));
-            if (newNode->val == NULL) {
-                free(newNode);
+            // Assumant que MyStruct est défini quelque part
+            new_node->val = malloc(sizeof(MyStruct));
+            if (new_node->val == NULL) {
+                free(new_node);
                 return 0;
             }
-            memcpy(newNode->val, value, sizeof(MyStruct));
+            memcpy(new_node->val, value, sizeof(MyStruct));
             break;
         default:
-            free(newNode);
+            free(new_node);
             return 0;
     }
 
-    newNode->succ = NULL;
-
-    // Ajout du nouveau nœud à la fin de la liste
-    if (col->head == NULL) {
-        col->head = newNode;  // Premier élément de la liste
-    } else {
-        LISTE *current = col->head;
-        while (current->succ != NULL) {
-            current = current->succ;  // Parcourir jusqu'au dernier nœud
+    if (position == 0) {  // Insertion en tête
+        new_node->succ = col->head;
+        new_node->prev = NULL;
+        if (col->head != NULL) {
+            col->head->prev = new_node;
         }
-        current->succ = newNode;  // Ajouter le nouveau nœud à la fin
+        col->head = new_node;
+    } else {
+        LISTE *temp = col->head;
+        int count = 0;
+        while (temp != NULL && count < position - 1) {
+            temp = temp->succ;
+            count++;
+        }
+
+        if (temp == NULL && position != 0) {  // Position est invalide (pas assez d'éléments)
+            free(new_node->val);
+            free(new_node);
+            return 0;
+        }
+
+        new_node->succ = temp->succ;
+        new_node->prev = temp;
+        if (temp->succ != NULL) {
+            temp->succ->prev = new_node;
+        }
+        temp->succ = new_node;
     }
 
     col->size++;
-    return 1;  // Succès
+    return 1;
 }
 
-
-// ============ Création de la fonction delete_column =============
-
 void delete_column(COLUMN** col) {
-    if (col == NULL || *col == NULL) {
+    if (*col == NULL) {
         printf("La colonne est déjà libérée ou n'existe pas\n");
         return;
     }
@@ -124,27 +150,32 @@ void delete_column(COLUMN** col) {
     // Libération de la mémoire allouée pour le titre
     free((*col)->title);
 
-    // Libération de la mémoire allouée pour chaque élément de la liste chaînée
-    LISTE* currentNode = (*col)->head;
-    while (currentNode != NULL) {
-        LISTE * temp = currentNode;
-        currentNode = currentNode->succ;
+    // Parcourir et libérer chaque noeud de la liste chaînée
+    LISTE *current = (*col)->head;
+    while (current != NULL) {
+        LISTE *next = current->succ;
 
-        // Libérer la mémoire allouée pour les données du nœud
-        free(temp->val);
-        // Libérer le nœud lui-même
-        free(temp);
+        // Libération de la valeur stockée dans le noeud
+        free(current->val);
+
+        // Libération du noeud lui-même
+        free(current);
+
+        current = next; // Passer au noeud suivant
     }
 
-    // Libération de la mémoire allouée pour la structure de colonne elle-même
+    // Si les index sont utilisés, libérer cette mémoire
+    if ((*col)->index != NULL) {
+        free((*col)->index);
+    }
+
+    // Libération de la structure de colonne elle-même
     free(*col);
 
     // Mettre le pointeur de la colonne à NULL
     *col = NULL;
 }
 
-
-// ================= Création de la fonction print_col ======================
 
 
 void print_col(COLUMN *col) {
@@ -218,199 +249,147 @@ void convert_value(COLUMN* col, unsigned long long int index, char* str, int siz
     }
 }
 
-// ========= Création de la fonction qui retourner le nombre de d’occurrences d’une valeur x (x donné en paramètre) ======
-
 void nb_occ(COLUMN* col, void* x) {
     if (col == NULL) {
-        printf("Column is NULL\n");
+        printf("La colonne est NULL\n");
         return;
     }
 
     int count = 0;
     ENUM_TYPE type = col->column_type;
+    LISTE* current = col->head;
 
-    // Parcours de la liste chaînée pour compter les occurrences
-    LISTE* currentNode = col->head;
-    while (currentNode != NULL) {
+    while (current != NULL) {
         if (x == NULL) {
-            if (currentNode->val == NULL) {
+            if (current->val == NULL) {
                 count++;
             }
-        } else if (currentNode->val != NULL) {
+        } else if (current->val != NULL) {
             switch (type) {
                 case MY_INT:
-                    if (*(int*)(currentNode->val) == *(int*)x) count++;
+                    if (*(int*)(current->val) == *(int*)x) count++;
                     break;
                 case MY_FLOAT:
-                    if (*(float*)(currentNode->val) == *(float*)x) count++;
+                    if (*(float*)(current->val) == *(float*)x) count++;
                     break;
                 case MY_CHAR:
-                    if (*(char*)(currentNode->val) == *(char*)x) count++;
+                    if (*(char*)(current->val) == *(char*)x) count++;
                     break;
                 case MY_DOUBLE:
-                    if (*(double*)(currentNode->val) == *(double*)x) count++;
+                    if (*(double*)(current->val) == *(double*)x) count++;
                     break;
                 case STRING:
-                    if (strcmp((char*)(currentNode->val), (char*)x) == 0) count++;
+                    if (strcmp((char*)(current->val), (char*)x) == 0) count++;
                     break;
                 case MY_UINT:
-                    if (*(unsigned int*)(currentNode->val) == *(unsigned int*)x) count++;
+                    if (*(unsigned int*)(current->val) == *(unsigned int*)x) count++;
                     break;
                 default:
-                    // Potentially add cases for STRUCTURE or other custom types
+                    // Additional cases for STRUCTURE or other custom types can be implemented here
                     break;
             }
         }
-        currentNode = currentNode->succ; // Passer au nœud suivant
+        current = current->succ;
     }
 
-    // Affichage du nombre d'occurrences
+    // Display the result
     if (x == NULL) {
         printf("Le nombre d'occurrences de la valeur NULL est : %d\n", count);
     } else {
-        // Affichage en fonction du type de données
-        switch (type) {
-            case MY_INT:
-            case MY_UINT:
-                printf("Le nombre d'occurrences de la valeur %d est : %d\n", *(int*)x, count);
-                break;
-            case MY_FLOAT:
-                printf("Le nombre d'occurrences de la valeur %f est : %d\n", *(float*)x, count);
-                break;
-            case MY_CHAR:
-                printf("Le nombre d'occurrences de la valeur '%c' est : %d\n", *(char*)x, count);
-                break;
-            case MY_DOUBLE:
-                printf("Le nombre d'occurrences de la valeur %lf est : %d\n", *(double*)x, count);
-                break;
-            case STRING:
-                printf("Le nombre d'occurrences de la valeur \"%s\" est : %d\n", (char*)x, count);
-                break;
-            default:
-                printf("Type non supporte pour l'affichage\n");
-                break;
-        }
+        // Display the count based on type
+        // Same switch as above can be used to format output based on type
+        printf("Le nombre d'occurrences de la valeur spécifiée est : %d\n", count);
     }
 }
 
-// ========= Création de la fonction qui retourner la valeur présente à la position x (x donné en paramètre) ======
-
 void pos_val(COLUMN* col, unsigned int x) {
     if (col == NULL) {
-        printf("Column is NULL\n");
-        exit(EXIT_FAILURE);
+        printf("La colonne est NULL\n");
+        return;
     }
 
-    LISTE* node = col->head;
-    unsigned int count = 0;
-
-    // Avancer dans la liste jusqu'à la position x
-    while (node != NULL && count < x) {
-        node = node->succ;
-        count++;
-    }
-
-    if (node == NULL) {
+    if (x >= col->size) {
         printf("Position invalide\n");
         return;
     }
 
-    if (node->val == NULL) {
-        printf("La valeur a la position %u est : NULL\n", x);
-        return;
+    LISTE* current = col->head;
+    unsigned int count = 0;
+
+    // Move to the x-th position
+    while (count < x && current != NULL) {
+        current = current->succ;
+        count++;
     }
 
-    // Determine and print the value based on the type stored in the column_list
-    switch (col->column_type) {
-        case MY_INT:
-            printf("La valeur a la position %u est : %d\n", x, *((int*)node->val));
-            break;
-        case MY_FLOAT:
-            printf("La valeur a la position %u est : %f\n", x, *((float*)node->val));
-            break;
-        case MY_CHAR:
-            printf("La valeur a la position %u est : '%c'\n", x, *((char*)node->val));
-            break;
-        case MY_DOUBLE:
-            printf("La valeur a la position %u est : %lf\n", x, *((double*)node->val));
-            break;
-        case STRING:
-            printf("La valeur a la position %u est : \"%s\"\n", x, (char*)node->val);
-            break;
-        case MY_UINT:
-            printf("La valeur a la position %u est : %u\n", x, *((unsigned int*)node->val));
-            break;
-        case STRUCTURE:
-            // Assuming you have a way to stringify your structure
-            printf("La valeur a la position %u est : Structure\n", x);
-            break;
-        default:
-            printf("Type non supporte\n");
-            break;
+    if (current == NULL) {
+        printf("La valeur à la position %u est : NULL\n", x);
+    } else {
+        // Assuming current->val points to the correct data type
+        switch (col->column_type) {
+            case MY_INT:
+                printf("La valeur à la position %u est : %d\n", x, *((int*)current->val));
+                break;
+            case MY_FLOAT:
+                printf("La valeur à la position %u est : %f\n", x, *((float*)current->val));
+                break;
+            case MY_CHAR:
+                printf("La valeur à la position %u est : '%c'\n", x, *((char*)current->val));
+                break;
+            case MY_DOUBLE:
+                printf("La valeur à la position %u est : %lf\n", x, *((double*)current->val));
+                break;
+            case STRING:
+                printf("La valeur à la position %u est : \"%s\"\n", x, *((char**)current->val));
+                break;
+            case MY_UINT:
+                printf("La valeur à la position %u est : %u\n", x, *((unsigned int*)current->val));
+                break;
+            case STRUCTURE:
+                // Structure handling
+                break;
+            default:
+                printf("Type non supporté\n");
+                break;
+        }
     }
 }
 
-
-// ========= Création de la fonction qui retourner le nombre de valeurs qui sont supérieures à x (x donné en paramètre) =====
-
 void nb_val_supe(COLUMN* col, void* x) {
-    if (col == NULL) {
-        printf("Invalid column_list reference\n");
+    if (col == NULL || x == NULL) {
+        printf("Invalid column or comparison value\n");
         return;
     }
 
     int count = 0;
     ENUM_TYPE type = col->column_type;
-    LISTE* node = col->head;
+    LISTE* current = col->head;
 
-    if (x == NULL) {
-        // Comptage de toutes les entrées non NULL si x est NULL
-        while (node != NULL) {
-            if (node->val != NULL) {
-                count++;
+    while (current != NULL) {
+        if (current->val != NULL) {
+            switch (type) {
+                case MY_INT:
+                    if (*((int*)(current->val)) > *((int*)x)) count++;
+                    break;
+                case MY_FLOAT:
+                    if (*((float*)(current->val)) > *((float*)x)) count++;
+                    break;
+                case MY_DOUBLE:
+                    if (*((double*)(current->val)) > *((double*)x)) count++;
+                    break;
+                case MY_UINT:
+                    if (*((unsigned int*)(current->val)) > *((unsigned int*)x)) count++;
+                    break;
+                default:
+                    printf("Type non supporté pour la comparaison\n");
+                    return;
             }
-            node = node->succ;
         }
-        printf("Le nombre de valeurs non-NULL est : %d\n", count);
-    } else {
-        // Effectuer des comparaisons appropriées au type
-        while (node != NULL) {
-            if (node->val != NULL) {
-                switch (type) {
-                    case MY_INT:
-                        if (*((int*)(node->val)) > *((int*)x)) count++;
-                        break;
-                    case MY_FLOAT:
-                        if (*((float*)(node->val)) > *((float*)x)) count++;
-                        break;
-                    case MY_DOUBLE:
-                        if (*((double*)(node->val)) > *((double*)x)) count++;
-                        break;
-                    case MY_UINT:
-                        if (*((unsigned int*)(node->val)) > *((unsigned int*)x)) count++;
-                        break;
-                        // Étendre les cas à d'autres types si nécessaire
-                    default:
-                        printf("Type non supporté pour la comparaison\n");
-                        return;
-                }
-            }
-            node = node->succ;
-        }
-
-        // Print the results based on the type of `x`
-        if (type == MY_INT || type == MY_UINT) {
-            printf("Le nombre de valeurs superieures a %d est : %d\n", *((int*)x), count);
-        } else if (type == MY_FLOAT) {
-            printf("Le nombre de valeurs superieures a %f est : %d\n", *((float*)x), count);
-        } else if (type == MY_DOUBLE) {
-            printf("Le nombre de valeurs superieures a %lf est : %d\n", *((double*)x), count);
-        }
+        current = current->succ;
     }
+
+    printf("Le nombre de valeurs superieures a %d est : %d\n", *((int*)x), count);
 }
-
-
-// ========= Création de la fonction qui retourner le nombre de valeurs qui sont inférieures à x (x donné en paramètre) ======
 
 void nb_val_inf(COLUMN* col, void* x) {
     if (col == NULL || x == NULL) {
@@ -420,51 +399,30 @@ void nb_val_inf(COLUMN* col, void* x) {
 
     int count = 0;
     ENUM_TYPE type = col->column_type;
-    LISTE* node = col->head;
+    LISTE* current = col->head;
 
-    while (node != NULL) {
-        if (node->val != NULL) {
+    while (current != NULL) {
+        if (current->val != NULL) {
             switch (type) {
                 case MY_INT:
-                    if (*((int*)(node->val)) < *((int*)x)) count++;
+                    if (*((int*)(current->val)) < *((int*)x)) count++;
                     break;
                 case MY_FLOAT:
-                    if (*((float*)(node->val)) < *((float*)x)) count++;
+                    if (*((float*)(current->val)) < *((float*)x)) count++;
                     break;
                 case MY_DOUBLE:
-                    if (*((double*)(node->val)) < *((double*)x)) count++;
-                    break;
-                case MY_UINT:
-                    if (*((unsigned int*)(node->val)) < *((unsigned int*)x)) count++;
+                    if (*((double*)(current->val)) < *((double*)x)) count++;
                     break;
                 default:
                     printf("Comparaison inferieure non supportee pour ce type\n");
                     return;
             }
         }
-        node = node->succ;
+        current = current->succ;
     }
 
-    // Print the final count based on the data type of x
-    switch (type) {
-        case MY_INT:
-        case MY_UINT:  // Assuming you want to handle unsigned ints as well
-            printf("Le nombre de valeurs inferieures a %d est : %d\n", *((int*)x), count);
-            break;
-        case MY_FLOAT:
-            printf("Le nombre de valeurs inferieures a %f est : %d\n", *((float*)x), count);
-            break;
-        case MY_DOUBLE:
-            printf("Le nombre de valeurs inferieures a %lf est : %d\n", *((double*)x), count);
-            break;
-        default:
-            printf("Type non supporte pour l'affichage\n");
-            break;
-    }
+    printf("Le nombre de valeurs inferieures a %d est : %d\n", *((int*)x), count);
 }
-
-
-// ========= Création de la fonction qui retourner le nombre de valeurs qui sont égales à x (x donné en paramètre) ======
 
 void nb_val_egal(COLUMN* col, void* x) {
     if (col == NULL || x == NULL) {
@@ -474,52 +432,39 @@ void nb_val_egal(COLUMN* col, void* x) {
 
     int count = 0;
     ENUM_TYPE type = col->column_type;
-    LISTE* node = col->head;
+    LISTE* current = col->head;
 
-    while (node != NULL) {
-        if (node->val != NULL) {
+    while (current != NULL) {
+        if (current->val != NULL) {
             switch (type) {
                 case MY_INT:
-                    if (*((int*)(node->val)) == *((int*)x)) count++;
+                    if (*((int*)(current->val)) == *((int*)x)) count++;
                     break;
                 case MY_FLOAT:
-                    if (*((float*)(node->val)) == *((float*)x)) count++;
+                    if (*((float*)(current->val)) == *((float*)x)) count++;
                     break;
                 case MY_DOUBLE:
-                    if (*((double*)(node->val)) == *((double*)x)) count++;
+                    if (*((double*)(current->val)) == *((double*)x)) count++;
                     break;
                 case MY_UINT:
-                    if (*((unsigned int*)(node->val)) == *((unsigned int*)x)) count++;
+                    if (*((unsigned int*)(current->val)) == *((unsigned int*)x)) count++;
                     break;
                 case MY_CHAR:
-                    if (*((char*)(node->val)) == *((char*)x)) count++;
+                    if (*((char*)(current->val)) == *((char*)x)) count++;
                     break;
                 case STRING:
-                    if (strcmp((char*)node->val, (char*)x) == 0) count++;  // Compare strings
+                    if (strcmp((char*)current->val, (char*)x) == 0) count++;  // Compare strings
                     break;
                 default:
                     printf("Comparison not supported for this type\n");
                     return;
             }
         }
-        node = node->succ;
+        current = current->succ;
     }
 
-    // Print results based on the type of x
-    if (type == MY_INT || type == MY_UINT) {
-        printf("Le nombre de valeurs egales a %d est : %d\n", *((int*)x), count);
-    } else if (type == MY_FLOAT) {
-        printf("Le nombre de valeurs egales a %f est : %d\n", *((float*)x), count);
-    } else if (type == MY_DOUBLE) {
-        printf("Le nombre de valeurs egales a %lf est : %d\n", *((double*)x), count);
-    } else if (type == MY_CHAR) {
-        printf("Le nombre de valeurs egales a '%c' est : %d\n", *((char*)x), count);
-    } else if (type == STRING) {
-        printf("Le nombre de valeurs egales a \"%s\" est : %d\n", (char*)x, count);
-    }
+    printf("Le nombre de valeurs egales a %d est : %d\n", *((int*)x), count);
 }
-
-
 
 LISTE* find_previous(LISTE* head, LISTE* node) {
     LISTE* current = head;
@@ -684,7 +629,7 @@ void sort(COLUMN* col, int sort_dir) {
         // La logique d'insertion dans une liste partiellement triée nécessiterait une insertion adaptée.
         // Ici, nous choisissons de simplement appliquer un tri rapide pour simplifier.
         // quickSort(col);
-        linked_list_insertion_sort(col);  // Utilisation du tri par insertion pour liste chaînée
+        quickSort(col);  // Utilisation du tri par insertion pour liste chaînée
     } else if (col->valid_index == 1) {  // Déjà trié, juste trier si la direction a changé
         if (sort_dir != col->sort_dir) {
             quickSort(col);
@@ -715,7 +660,4 @@ void print_col_by_index(COLUMN *col) {
         }
     }
 }
-
- */
-
 

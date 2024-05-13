@@ -377,7 +377,7 @@ void menu2() {
                 do {
                     printf("1 - Creer une colonne\n"
                            "2 - Inserer une valeur dans une colonne\n"
-                           "3 - Afficher une colonne\n"
+                           "3 - Afficher \n"
                            "4 - Rechercher dans une colonne\n"
                            "5 - Trier une colonne\n"
                            "6 - Supprimer une colonne\n"

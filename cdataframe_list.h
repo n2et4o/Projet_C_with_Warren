@@ -12,17 +12,13 @@ typedef struct ColumnList {
     struct ColumnList *succ;
 } ColumnList;
 
-typedef struct {
-    ColumnList *head;  // Pointeur vers la tête de la liste de colonnes
-    int num_columns;   // Nombre de colonnes dans le dataframe
-} CDATAFRAME;
-
-/*  // Pour l'utilisation d'un dataframe dynanique
+// Pour l'utilisation d'un dataframe dynanique
 typedef struct {
     COLUMN** columns;
+    ColumnList *head; // Pointeur vers la tête de la liste de colonnes
     int num_columns;
 } CDATAFRAME;
-*/
+
 CDATAFRAME *create_empty_cdataframe();
 
 CDATAFRAME *create_cdataframe(ENUM_TYPE *cdftype, int size);
@@ -62,5 +58,15 @@ void explain_cdataframe();
 void clean_stdin();
 
 void print_multiple_cols(CDATAFRAME *dataframe, int start, int end);
+
+void print_limited_rows(CDATAFRAME *dataframe);
+
+void handle_column_display(CDATAFRAME *dataframe);
+
+void print_single_row(CDATAFRAME *dataframe, int row_index);
+
+void handle_row_display(CDATAFRAME *dataframe);
+
+
 
 #endif //PROJET_C_WITH_WARREN_CDATAFRAME_LIST_H

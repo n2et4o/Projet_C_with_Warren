@@ -12,9 +12,9 @@
 #define REALOC_SIZE 256
 #define ASC 0
 #define DESC 1
-#define MAX_COLUMNS 10  // Nous pouvez augmenter cette taille selon les besoins
 #define MAX_TITLE_LENGTH 50
 #define MAX_COLUMNS 50  // Définissez une limite sur le nombre de colonnes
+#define MAX_COL_WIDTH 20
 
 
 void menu();
@@ -49,6 +49,7 @@ typedef union column_type COL_TYPE ;
 typedef struct liste {
     void* val;
     struct liste* succ;
+    struct liste *prev;
 } LISTE;
 
 
@@ -88,7 +89,8 @@ COLUMN* create_column(ENUM_TYPE type, char* title);
 * @param2 : The value to be added
 * @return : 1 if the value is added 0 otherwise
 */
-int insert_value(COLUMN *col, void *value);
+//int insert_value(COLUMN *col, void *value);
+int insert_value(COLUMN *col, void *value, int position);
 
 /**
 * @brief : Free allocated memory
@@ -113,6 +115,7 @@ void nb_val_inf(COLUMN* col, void* x);
 void nb_val_egal(COLUMN* col, void* x);
 
 void convert_value(COLUMN *col, unsigned long long int i, char *str, int size);
+//void convert_value(COLUMN* col, void* value, char* str, int size);
 
 //void quicksort(COLUMN *col, int left, int right);
 //void insertion_sort(COLUMN *col);

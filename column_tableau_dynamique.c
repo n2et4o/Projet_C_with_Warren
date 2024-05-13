@@ -60,35 +60,35 @@ int insert_value(COLUMN *col, void *value) {
         col->data[col->size] = NULL;
     } else {
         switch (col->column_type) {
-            case UINT:
+            case MY_UINT:
                 col->data[col->size] = malloc(sizeof(unsigned int));
                 if (col->data[col->size] == NULL) {
                     return 0;
                 }
                 *((unsigned int *)col->data[col->size]) = *((unsigned int *)value);
                 break;
-            case INT:
+            case MY_INT:
                 col->data[col->size] = malloc(sizeof(int));
                 if (col->data[col->size] == NULL) {
                     return 0;
                 }
                 *((int *)col->data[col->size]) = *((int *)value);
                 break;
-            case CHAR:
+            case MY_CHAR:
                 col->data[col->size] = malloc(sizeof(char));
                 if (col->data[col->size] == NULL) {
                     return 0;
                 }
                 *((char *)col->data[col->size]) = *((char *)value);
                 break;
-            case FLOAT:
+            case MY_FLOAT:
                 col->data[col->size] = malloc(sizeof(float));
                 if (col->data[col->size] == NULL) {
                     return 0;
                 }
                 *((float *)col->data[col->size]) = *((float *)value);
                 break;
-            case DOUBLE:
+            case MY_DOUBLE:
                 col->data[col->size] = malloc(sizeof(double));
                 if (col->data[col->size] == NULL) {
                     return 0;
@@ -186,20 +186,20 @@ void convert_value(COLUMN* col, unsigned long long int i, char* str, int size) {
     }
 
     switch(col->column_type) {
-        case UINT:
+        case MY_UINT:
             snprintf(str, size, "%u", *((unsigned int*)col->data[i]));
             break;
-        case INT:
+        case MY_INT:
             snprintf(str, size, "%d", *((int*)col->data[i]));
             break;
-        case CHAR:
+        case MY_CHAR:
             snprintf(str, size, "%c", *((char*)col->data[i]));
             break;
-        case FLOAT:
+        case MY_FLOAT:
             // Pour les floats, vous pourriez vouloir contrôler la précision, par exemple "%.2f" pour deux décimales.
             snprintf(str, size, "%f", *((float*)col->data[i]));
             break;
-        case DOUBLE:
+        case MY_DOUBLE:
             // De même, "%.lf" pour les doubles avec une précision contrôlée si nécessaire.
             snprintf(str, size, "%lf", *((double*)col->data[i]));
             break;
@@ -230,22 +230,22 @@ void nb_occ(COLUMN* col, void* x) {
             }
         } else if (col->data[i] != NULL) {
             switch (type) {
-                case INT:
+                case MY_INT:
                     if (*(int*)(col->data[i]) == *(int*)x) count++;
                     break;
-                case FLOAT:
+                case MY_FLOAT:
                     if (*(float*)(col->data[i]) == *(float*)x) count++;
                     break;
-                case CHAR:
+                case MY_CHAR:
                     if (*(char*)(col->data[i]) == *(char*)x) count++;
                     break;
-                case DOUBLE:
+                case MY_DOUBLE:
                     if (*(double*)(col->data[i]) == *(double*)x) count++;
                     break;
                 case STRING:
                     if (strcmp((char*)(col->data[i]), (char*)x) == 0) count++;
                     break;
-                case UINT:
+                case MY_UINT:
                     if (*(unsigned int*)(col->data[i]) == *(unsigned int*)x) count++;
                     break;
                 default:
@@ -260,17 +260,17 @@ void nb_occ(COLUMN* col, void* x) {
     } else {
         // Assuming x is a pointer to a type that matches the column_list type
         switch (type) {
-            case INT:
-            case UINT:
+            case MY_INT:
+            case MY_UINT:
                 printf("Le nombre d'occurrences de la valeur %d est : %d\n", *(int*)x, count);
                 break;
-            case FLOAT:
+            case MY_FLOAT:
                 printf("Le nombre d'occurrences de la valeur %f est : %d\n", *(float*)x, count);
                 break;
-            case CHAR:
+            case MY_CHAR:
                 printf("Le nombre d'occurrences de la valeur '%c' est : %d\n", *(char*)x, count);
                 break;
-            case DOUBLE:
+            case MY_DOUBLE:
                 printf("Le nombre d'occurrences de la valeur %lf est : %d\n", *(double*)x, count);
                 break;
             case STRING:
@@ -298,22 +298,22 @@ void pos_val(COLUMN* col, unsigned int x) {
 
     // Determine and print the value based on the type stored in the column_list
     switch (col->column_type) {
-        case INT:
+        case MY_INT:
             printf("La valeur a la position %u est : %d\n", x, *((int*)col->data[x]));
             break;
-        case FLOAT:
+        case MY_FLOAT:
             printf("La valeur a la position %u est : %f\n", x, *((float*)col->data[x]));
             break;
-        case CHAR:
+        case MY_CHAR:
             printf("La valeur a la position %u est : '%c'\n", x, *((char*)col->data[x]));
             break;
-        case DOUBLE:
+        case MY_DOUBLE:
             printf("La valeur a la position %u est : %lf\n", x, *((double*)col->data[x]));
             break;
         case STRING:
             printf("La valeur a la position %u est : \"%s\"\n", x, *((char**)col->data[x]));
             break;
-        case UINT:
+        case MY_UINT:
             printf("La valeur a la position %u est : %u\n", x, *((unsigned int*)col->data[x]));
             break;
         case STRUCTURE:
@@ -350,16 +350,16 @@ void nb_val_supe(COLUMN* col, void* x) {
         for (unsigned int i = 0; i < col->size; i++) {
             if (col->data[i] != NULL) {
                 switch (type) {
-                    case INT:
+                    case MY_INT:
                         if (*((int*)(col->data[i])) > *((int*)x)) count++;
                         break;
-                    case FLOAT:
+                    case MY_FLOAT:
                         if (*((float*)(col->data[i])) > *((float*)x)) count++;
                         break;
-                    case DOUBLE:
+                    case MY_DOUBLE:
                         if (*((double*)(col->data[i])) > *((double*)x)) count++;
                         break;
-                    case UINT:
+                    case MY_UINT:
                         if (*((unsigned int*)(col->data[i])) > *((unsigned int*)x)) count++;
                         break;
                     // Étendre les cas à d'autres types si nécessaire
@@ -370,11 +370,11 @@ void nb_val_supe(COLUMN* col, void* x) {
             }
         }
         // Print the results based on the assumed type of `x` being int
-        if (type == INT || type == UINT) {
+        if (type == MY_INT || type == MY_UINT) {
             printf("Le nombre de valeurs superieures a %d est : %d\n", *((int*)x), count);
-        } else if (type == FLOAT) {
+        } else if (type == MY_FLOAT) {
             printf("Le nombre de valeurs superieures a %f est : %d\n", *((float*)x), count);
-        } else if (type == DOUBLE) {
+        } else if (type == MY_DOUBLE) {
             printf("Le nombre de valeurs superieures a %lf est : %d\n", *((double*)x), count);
         }
     }
@@ -395,13 +395,13 @@ void nb_val_inf(COLUMN* col, void* x) {
     for (unsigned int i = 0; i < col->size; i++) {
         if (col->data[i] != NULL) {
             switch (type) {
-                case INT:
+                case MY_INT:
                     if (*((int*)(col->data[i])) < *((int*)x)) count++;
                     break;
-                case FLOAT:
+                case MY_FLOAT:
                     if (*((float*)(col->data[i])) < *((float*)x)) count++;
                     break;
-                case DOUBLE:
+                case MY_DOUBLE:
                     if (*((double*)(col->data[i])) < *((double*)x)) count++;
                     break;
                 default:
@@ -413,13 +413,13 @@ void nb_val_inf(COLUMN* col, void* x) {
 
     // Print the final count outside the loop
     switch (type) {
-        case INT:
+        case MY_INT:
             printf("Le nombre de valeurs inferieures a %d est : %d\n", *((int*)x), count);
             break;
-        case FLOAT:
+        case MY_FLOAT:
             printf("Le nombre de valeurs inferieures a %f est : %d\n", *((float*)x), count);
             break;
-        case DOUBLE:
+        case MY_DOUBLE:
             printf("Le nombre de valeurs inferieures a %lf est : %d\n", *((double*)x), count);
             break;
         default:
@@ -445,19 +445,19 @@ void nb_val_egal(COLUMN* col, void* x) {
     for (unsigned int i = 0; i < col->size; i++) {
         if (col->data[i] != NULL) {
             switch (type) {
-                case INT:
+                case MY_INT:
                     if (*((int*)(col->data[i])) == *((int*)x)) count++;
                     break;
-                case FLOAT:
+                case MY_FLOAT:
                     if (*((float*)(col->data[i])) == *((float*)x)) count++;
                     break;
-                case DOUBLE:
+                case MY_DOUBLE:
                     if (*((double*)(col->data[i])) == *((double*)x)) count++;
                     break;
-                case UINT:
+                case MY_UINT:
                     if (*((unsigned int*)(col->data[i])) == *((unsigned int*)x)) count++;
                     break;
-                case CHAR:
+                case MY_CHAR:
                     if (*((char*)(col->data[i])) == *((char*)x)) count++;
                     break;
                 case STRING:
@@ -471,13 +471,13 @@ void nb_val_egal(COLUMN* col, void* x) {
     }
 
     // Print results based on the type of x, assuming x is of a basic data type
-    if (type == INT || type == UINT) {
+    if (type == MY_INT || type == MY_UINT) {
         printf("Le nombre de valeurs egales a %d est : %d\n", *((int*)x), count);
-    } else if (type == FLOAT) {
+    } else if (type == MY_FLOAT) {
         printf("Le nombre de valeurs egales a %f est : %d\n", *((float*)x), count);
-    } else if (type == DOUBLE) {
+    } else if (type == MY_DOUBLE) {
         printf("Le nombre de valeurs egales a %lf est : %d\n", *((double*)x), count);
-    } else if (type == CHAR) {
+    } else if (type == MY_CHAR) {
         printf("Le nombre de valeurs egales a '%c' est : %d\n", *((char*)x), count);
     } else if (type == STRING) {
         printf("Le nombre de valeurs egales a \"%s\" est : %d\n", (char*)x, count);
@@ -488,13 +488,13 @@ void nb_val_egal(COLUMN* col, void* x) {
 int compare(COL_TYPE *a, COL_TYPE *b, COLUMN *col) {
     if (col->sort_dir == ASC) {  // Ascending order
         switch (col->column_type) {
-            case INT:
+            case MY_INT:
                 return (*(int *)a - *(int *)b);
-            case FLOAT:
+            case MY_FLOAT:
                 return (*(float *)a > *(float *)b) - (*(float *)a < *(float *)b);
-            case CHAR:
+            case MY_CHAR:
                 return (*(char *)a - *(char *)b);
-            case DOUBLE:
+            case MY_DOUBLE:
                 return (*(double *)a > *(double *)b) - (*(double *)a < *(double *)b);
             case STRING:
                 return strcmp((char *)a, (char *)b);
@@ -504,13 +504,13 @@ int compare(COL_TYPE *a, COL_TYPE *b, COLUMN *col) {
         }
     } else {  // Descending order
         switch (col->column_type) {
-            case INT:
+            case MY_INT:
                 return (*(int *)b - *(int *)a);
-            case FLOAT:
+            case MY_FLOAT:
                 return (*(float *)b > *(float *)a) - (*(float *)b < *(float *)a);
-            case CHAR:
+            case MY_CHAR:
                 return (*(char *)b - *(char *)a);
-            case DOUBLE:
+            case MY_DOUBLE:
                 return (*(double *)b > *(double *)a) - (*(double *)b < *(double *)a);
             case STRING:
                 return strcmp((char *)b, (char *)a);
@@ -582,4 +582,4 @@ void sort(COLUMN* col, int sort_dir) {
     printf("Column sorted successfully.\n");
 }
 
- */
+*/

@@ -4,6 +4,7 @@
 
 #include "cdataframe_list.h"
 
+/*
 CDATAFRAME *create_empty_cdataframe() {
     CDATAFRAME *cdf = (CDATAFRAME *)malloc(sizeof(CDATAFRAME));
     if (cdf == NULL) {
@@ -98,50 +99,6 @@ void delete_cdataframe(CDATAFRAME **cdf) {
     *cdf = NULL;
     printf("Dataframe supprime avec succes.\n");
 }
-
-/*
-void delete_column_by_name(CDATAFRAME *cdf, char *col_name) {
-    if (cdf == NULL || cdf->head == NULL) {
-        printf("Le dataframe est vide ou n'existe pas.\n");
-        return;
-    }
-
-    ColumnList *current = cdf->head;
-    ColumnList *prev = NULL;
-
-    while (current != NULL) {
-        if (strcmp(current->column_list->title, col_name) == 0) {
-            if (prev == NULL) { // La colonne à supprimer est la tête de la liste
-                cdf->head = current->succ;
-            } else {
-                prev->succ = current->succ; // Débrancher le nœud de la liste
-            }
-
-            // Libérer la colonne
-            if (current->column_list->title) free(current->column_list->title);
-            if (current->column_list->data) {
-                for (unsigned int i = 0; i < current->column_list->size; i++) {
-                    if (current->column_list->data[i] != NULL) {
-                        free(current->column_list->data[i]);
-                    }
-                }
-                free(current->column_list->data);
-            }
-            if (current->column_list->index) free(current->column_list->index);
-            free(current->column_list);
-
-            // Libérer le nœud de la liste
-            free(current);
-            printf("Colonne '%s' supprimée avec succès.\n", col_name);
-            return;
-        }
-        prev = current;
-        current = current->succ;
-    }
-
-    printf("Colonne '%s' non trouvée.\n", col_name);
-}
-*/
 
 void clean_stdin() {
     int c;
@@ -391,6 +348,7 @@ void print_columns_process(CDATAFRAME *dataframe) {
     printf("Entrez votre choix (1-4) : ");
     if (scanf("%d", &option) != 1) {
         printf("Entrée invalide.\n");
+        getchar(); // Consommer le reste de la ligne pour éviter les problèmes d'input
         return;
     }
     getchar(); // Consommer le retour chariot restant
@@ -403,19 +361,20 @@ void print_columns_process(CDATAFRAME *dataframe) {
             printf("Entrez le numéro de la colonne que vous voulez afficher : ");
             if (scanf("%d", &col_index) != 1) {
                 printf("Entrée invalide.\n");
+                getchar(); // Consommer le reste
                 return;
             }
             getchar(); // Consommer le retour chariot restant
+            if (col_index < 1 || col_index > dataframe->num_columns) {
+                printf("Numéro de colonne invalide.\n");
+                return;
+            }
             current = dataframe->head;
-            for (int i = 1; i < col_index && current != NULL; i++) {
+            for (int i = 1; i < col_index; i++) {
                 current = current->next;
             }
-            if (current == NULL) {
-                printf("Index invalide.\n");
-            } else {
-                printf("\nColonne %d : %s\n", col_index, current->title);
-                print_col(current);
-            }
+            printf("\nColonne %d : %s\n", col_index, current->title);
+            print_col(current);
             break;
 
         case 2:
@@ -458,6 +417,7 @@ void print_columns_process(CDATAFRAME *dataframe) {
             break;
     }
 }
+
 
 
 
@@ -834,3 +794,5 @@ void explain_cdataframe() {
     printf("* Analyse de Donnees: Des outils integres ou supplementaires qui permettent \n\t\t\tde calculer des statistiques descriptives, de construire des modeles, etc.\n\n");
     sleep(2.5);
 }
+
+*/
