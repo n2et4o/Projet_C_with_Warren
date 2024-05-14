@@ -23,7 +23,5 @@ add_executable(Projet_C_with_Warren
         cdataframe_list.h
         column_tableau_dynamique.c
         cdataframe_tab_dynamique.c
-        cdataframe_LDC.c
         column_LDC.c
-        cdataframe_LDC.h
         column_LDC.c)

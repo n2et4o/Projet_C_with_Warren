@@ -362,7 +362,8 @@ void menu2() {
     char choice;
 
     while (go) {
-        printf("1 - Commencer\n"
+        printf(
+                "1 - Commencer\n"
                "2 - Credit\n"
                "3 - Comment ça marche ?\n"
                "4 - C'est quoi un CDataframe et à quoi ça sert ?\n"
@@ -375,7 +376,7 @@ void menu2() {
             case '1': {
                 char step1;
                 do {
-                    printf("1 - Creer une colonne\n"
+                    printf("1 - Création & Gestion\n"
                            "2 - Inserer une valeur dans une colonne\n"
                            "3 - Afficher \n"
                            "4 - Rechercher dans une colonne\n"
@@ -388,11 +389,6 @@ void menu2() {
 
                     switch(step1) {
                         case '1':
-                            if (dataframe->num_columns >= MAX_COLUMNS) {
-                                printf("Nombre maximum de colonnes atteint.\n");
-                                break;
-                            }
-                            // Processus de création de colonne
                             create_column_process(dataframe);
                             printf("\n");
                             break;

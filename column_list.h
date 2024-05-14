@@ -9,6 +9,7 @@
 #include <string.h>
 #include <unistd.h>  // Pour sleep()
 #include <windows.h> // Utilisation de code ASCII etendu
+#include <stdbool.h>
 #define REALOC_SIZE 256
 #define ASC 0
 #define DESC 1
@@ -133,6 +134,10 @@ LISTE* quickSortRecur(LISTE* head, LISTE* end, COLUMN* col);
 LISTE* partition(LISTE* head, LISTE* end, LISTE** newHead, LISTE** newEnd, COLUMN* col);
 void linked_list_insertion_sort(COLUMN* col);
 LISTE* find_previous(LISTE* head, LISTE* node);
+
+
+
+
 
 
 

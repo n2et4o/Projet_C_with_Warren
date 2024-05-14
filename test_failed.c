@@ -106,3 +106,187 @@
                             }
                             break;
  */
+
+// fonction de tri en LLC
+
+/*
+ *
+LISTE* find_previous(LISTE* head, LISTE* node) {
+    LISTE* current = head;
+    if (current == node) return NULL;  // Le premier élément n'a pas de précédent
+    while (current && current->succ != node) {
+        current = current->succ;
+    }
+    return current;
+}
+
+void linked_list_insertion_sort(COLUMN* col) {
+    if (!col || !col->head) {
+        printf("Invalid column_list or column_list data.\n");
+        return;
+    }
+
+    LISTE* sorted = NULL;
+    LISTE* current = col->head;
+    while (current != NULL) {
+        LISTE* next = current->succ;
+
+        // Insertion dans la liste triée
+        if (sorted == NULL || compare((COL_TYPE*)sorted->val, (COL_TYPE*)current->val, col) >= 0) {
+            current->succ = sorted;
+            sorted = current;
+        } else {
+            LISTE* temp = sorted;
+            while (temp->succ != NULL && compare((COL_TYPE*)temp->succ->val, (COL_TYPE*)current->val, col) < 0) {
+                temp = temp->succ;
+            }
+            current->succ = temp->succ;
+            temp->succ = current;
+        }
+
+        current = next;
+    }
+    col->head = sorted;
+    col->valid_index = 1;  // Marquer la colonne comme triée
+    printf("Colonne triée avec succès.\n");
+}
+
+LISTE* partition(LISTE* head, LISTE* end, LISTE** newHead, LISTE** newEnd, COLUMN* col) {
+    LISTE* pivot = end;
+    LISTE* prev = NULL, *cur = head, *tail = pivot;
+
+    // Parcourir jusqu'au pivot, réorganiser les éléments avant le pivot
+    // ceux < pivot sont mis avant le pivot
+    // ceux >= pivot sont mis après le pivot
+    while (cur != pivot) {
+        if (compare((COL_TYPE*)cur->val, (COL_TYPE*)pivot->val, col) < 0) {
+            // Le premier élément que cur est inférieur au pivot
+            if ((*newHead) == NULL) (*newHead) = cur;
+
+            prev = cur;
+            cur = cur->succ;
+        } else {  // Si l'élément cur est plus grand ou égal au pivot
+            if (prev) {
+                prev->succ = cur->succ;
+            }
+            LISTE* tmp = cur->succ;
+            cur->succ = NULL;
+            tail->succ = cur;
+            tail = cur;
+            cur = tmp;
+        }
+    }
+
+    // Si le pivot est le plus petit élément
+    if (*newHead == NULL) *newHead = pivot;
+
+    // Mise à jour newEnd au dernier élément de la liste inférieure
+    *newEnd = tail;
+
+    // Retourner le pivot
+    return pivot;
+}
+
+int compare(COL_TYPE *a, COL_TYPE *b, COLUMN *col) {
+    if (col->sort_dir == ASC) {  // Ascending order
+        switch (col->column_type) {
+            case MY_INT:
+                return (*(int *)a - *(int *)b);
+            case MY_FLOAT:
+                return (*(float *)a > *(float *)b) - (*(float *)a < *(float *)b);
+            case MY_CHAR:
+                return (*(char *)a - *(char *)b);
+            case MY_DOUBLE:
+                return (*(double *)a > *(double *)b) - (*(double *)a < *(double *)b);
+            case STRING:
+                return strcmp((char *)a, (char *)b);
+            default:
+                printf("Unsupported column_list type for sorting.\n");
+                return 0;
+        }
+    } else {  // Descending order
+        switch (col->column_type) {
+            case MY_INT:
+                return (*(int *)b - *(int *)a);
+            case MY_FLOAT:
+                return (*(float *)b > *(float *)a) - (*(float *)b < *(float *)a);
+            case MY_CHAR:
+                return (*(char *)b - *(char *)a);
+            case MY_DOUBLE:
+                return (*(double *)b > *(double *)a) - (*(double *)b < *(double *)a);
+            case STRING:
+                return strcmp((char *)b, (char *)a);
+            default:
+                printf("Unsupported column_list type for sorting.\n");
+                return 0;
+        }
+    }
+}
+
+
+
+LISTE* quickSortRecur(LISTE* head, LISTE* end, COLUMN* col) {
+    if (!head || head == end)
+        return head;
+
+    LISTE* newHead = NULL, *newEnd = NULL;
+
+    // Partitionner la liste, et retourner le pivot
+    LISTE* pivot = partition(head, end, &newHead, &newEnd, col);
+
+    // Si le pivot est le plus petit élément, il n'y a pas besoin de trier la partie avant pivot
+    if (newHead != pivot) {
+        // Gardez la partition avant pivot
+        LISTE* tmp = newHead;
+        while (tmp->succ != pivot)
+            tmp = tmp->succ;
+        tmp->succ = NULL;
+
+        // Recur pour la liste avant pivot
+        newHead = quickSortRecur(newHead, tmp, col);
+
+        // Changer succ de la dernière node de la partie gauche
+        find_previous(newHead, NULL)->succ = pivot;
+    }
+
+    // Recur pour la liste après pivot
+    pivot->succ = quickSortRecur(pivot->succ, newEnd, col);
+
+    return newHead;
+}
+
+void quickSort(COLUMN* col) {
+    col->head = quickSortRecur(col->head, find_previous(col->head, NULL), col);
+    printf("Colonne triée avec succès.\n");
+}
+
+void sort(COLUMN* col, int sort_dir) {
+    if (!col || !col->head) {
+        printf("Invalid column_list or column_list data.\n");
+        return;
+    }
+
+    col->sort_dir = sort_dir;  // Définir la direction du tri
+
+    if (col->valid_index == 0) {  // Pas du tout trié
+        quickSort(col);
+    } else if (col->valid_index == -1) {  // Partiellement trié (tout sauf le dernier élément)
+        // La logique d'insertion dans une liste partiellement triée nécessiterait une insertion adaptée.
+        // Ici, nous choisissons de simplement appliquer un tri rapide pour simplifier.
+        // quickSort(col);
+        quickSort(col);  // Utilisation du tri par insertion pour liste chaînée
+    } else if (col->valid_index == 1) {  // Déjà trié, juste trier si la direction a changé
+        if (sort_dir != col->sort_dir) {
+            quickSort(col);
+        }
+    }
+
+    col->valid_index = 1;  // Marquer la colonne comme entièrement triée
+    printf("Colonne triée avec succès.\n");
+}
+
+ */
+
+/*
+ *
+ */

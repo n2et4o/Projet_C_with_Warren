@@ -8,7 +8,7 @@
 
  // Supprimer cette ligne et la dernière pour pouvoir utiliser un CDataframe dynanique
 
-// ========
+// ================ Fonctions de création ==================
 
 CDATAFRAME *create_empty_cdataframe() {
     CDATAFRAME *cdf = (CDATAFRAME *)malloc(sizeof(CDATAFRAME));
@@ -29,7 +29,136 @@ CDATAFRAME *create_empty_cdataframe() {
     return cdf;
 }
 
-//==============
+
+void rename_column(CDATAFRAME *cdf, int column_index, const char *new_title) {
+    if (cdf == NULL || column_index < 0 || column_index >= cdf->num_columns) {
+        fprintf(stderr, "Invalid column index or null dataframe\n");
+        return;
+    }
+
+    COLUMN *column = cdf->columns[column_index];
+    if (column == NULL) {
+        fprintf(stderr, "Column at index %d is null\n", column_index);
+        return;
+    }
+
+    // Libérer l'ancien titre si nécessaire
+    free(column->title);
+
+    // Allouer de la mémoire pour le nouveau titre et le copier
+    column->title = malloc(strlen(new_title) + 1);
+    if (column->title == NULL) {
+        fprintf(stderr, "Memory allocation failed for new title\n");
+        return;
+    }
+    strcpy(column->title, new_title);
+}
+
+
+// Helper function to parse the data based on the type
+void* parse_data(char *data, ENUM_TYPE type) {
+    void *parsed_data = NULL;
+    switch(type) {
+        case MY_UINT:
+            parsed_data = malloc(sizeof(unsigned int));
+            *(unsigned int *)parsed_data = (unsigned int)strtoul(data, NULL, 10);
+            break;
+        case MY_INT:
+            parsed_data = malloc(sizeof(int));
+            *(int *)parsed_data = atoi(data);
+            break;
+        case MY_FLOAT:
+            parsed_data = malloc(sizeof(float));
+            *(float *)parsed_data = atof(data);
+            break;
+        case MY_DOUBLE:
+            parsed_data = malloc(sizeof(double));
+            *(double *)parsed_data = strtod(data, NULL);
+            break;
+        case STRING:
+            parsed_data = strdup(data);
+            break;
+            // Add other cases as necessary
+        default:
+            parsed_data = NULL;
+    }
+    return parsed_data;
+}
+
+CDATAFRAME* load_from_csv(char *file_name, ENUM_TYPE *dftype, int size) {
+    FILE *fp = fopen(file_name, "r");
+    if (!fp) {
+        fprintf(stderr, "Cannot open file %s\n", file_name);
+        return NULL;
+    }
+
+    CDATAFRAME *cdf = create_cdataframe(dftype, size);
+
+    char line[1024];
+    char *token;
+    int row_count = 0;
+    while (fgets(line, 1024, fp)) {
+        if (row_count == 0) {  // skip header row
+            row_count++;
+            continue;
+        }
+        token = strtok(line, ",");
+        for (int i = 0; i < size; i++) {
+            if (token == NULL) break;
+            cdf->columns[i]->data[cdf->columns[i]->size] = parse_data(token, dftype[i]);
+            token = strtok(NULL, ",");
+            cdf->columns[i]->size++;
+        }
+        row_count++;
+    }
+
+    fclose(fp);
+    return cdf;
+}
+
+void save_into_csv(CDATAFRAME *cdf, char *file_name) {
+    FILE *fp = fopen(file_name, "w");
+    if (!fp) {
+        fprintf(stderr, "Cannot open file %s\n", file_name);
+        return;
+    }
+
+    // Assuming first row to be header names
+    for (int i = 0; i < cdf->num_columns; i++) {
+        fprintf(fp, "%s", cdf->columns[i]->title);
+        if (i < cdf->num_columns - 1) fprintf(fp, ",");
+    }
+    fprintf(fp, "\n");
+
+    // Find the max number of rows in any column
+    int max_rows = 0;
+    for (int i = 0; i < cdf->num_columns; i++) {
+        if (cdf->columns[i]->size > max_rows) {
+            max_rows = cdf->columns[i]->size;
+        }
+    }
+
+    // Buffer for storing converted values
+    char buffer[256]; // Adjust size as needed
+
+    // Output each row
+    for (int row = 0; row < max_rows; row++) {
+        for (int col = 0; col < cdf->num_columns; col++) {
+            COLUMN *current_col = cdf->columns[col];
+            if (row < current_col->size) {
+                // Use convert_value to get string representation
+                convert_value(current_col, row, buffer, sizeof(buffer));
+                fprintf(fp, "%s", buffer);
+            } else {
+                fprintf(fp, "%s", "");  // Handle empty cells if rows are uneven
+            }
+            if (col < cdf->num_columns - 1) fprintf(fp, ",");
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+}
+
 
 CDATAFRAME *create_cdataframe(ENUM_TYPE *cdftype, int size) {
     CDATAFRAME *cdf = (CDATAFRAME *)malloc(sizeof(CDATAFRAME));
@@ -65,7 +194,7 @@ CDATAFRAME *create_cdataframe(ENUM_TYPE *cdftype, int size) {
     return cdf;
 }
 
-//============
+// ================ Fonctions de suppression ==================
 
 void delete_cdataframe(CDATAFRAME **cdf) {
     if (cdf == NULL || *cdf == NULL) {
@@ -137,100 +266,7 @@ void delete_column_by_name(CDATAFRAME *cdf, char *col_name) {
     printf("Colonne '%s' supprimee avec succes.\n", col_name);
 }
 
-void clean_stdin() {
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF) {}  // Cette boucle vide le tampon stdin.
-}
-
-void create_column_process(CDATAFRAME *dataframe) {
-    if (dataframe == NULL) {
-        printf("Dataframe non initialise.\n");
-        return;
-    }
-
-    int num_columns_to_add = 0;
-    printf("Combien de colonnes souhaitez-vous creer : ");
-    scanf("%d", &num_columns_to_add);
-    clean_stdin();  // Nettoyer le buffer après la lecture d'un entier
-
-    if (num_columns_to_add < 1) {
-        printf("Nombre de colonnes non valide. Retour au menu precedent.\n");
-        return;
-    }
-
-    if (dataframe->num_columns + num_columns_to_add > MAX_COLUMNS) {
-        printf("Impossible de creer %d colonnes, cela depasse le maximum autorise de %d colonnes.\n", num_columns_to_add, MAX_COLUMNS);
-        return;
-    }
-    int nb;
-    for (int i = 0; i < num_columns_to_add; ++i) {
-        if (dataframe->num_columns >= MAX_COLUMNS) {
-            printf("Nombre maximum de colonnes atteint (%d colonnes).\n", MAX_COLUMNS);
-            break;
-        }
-
-        printf("\nCreation de la colonne %d...\n", i);
-        char name_col[256];
-        printf("Nommez votre colonne : ");
-
-        if (fgets(name_col, sizeof(name_col), stdin) == NULL) {
-            printf("Erreur lors de la lecture du nom de la colonne.\n");
-            continue;  // Continue avec la prochaine colonne
-        }
-
-        name_col[strcspn(name_col, "\n")] = 0;  // Supprime le newline
-        printf("Vous avez nomme votre colonne : '%s'\n", name_col);
-
-        ENUM_TYPE col_type;
-        printf("Choisissez le type de colonne que vous voulez creer :\n"
-               "1 - Colonne d'entier (INT)\n"
-               "2 - Colonne de reel (FLOAT)\n"
-               "3 - Colonne de caracteres (CHAR)\n"
-               "4 - Colonne de chaine de caracteres (STRING)\n"
-               "5 - Colonne de reel long (DOUBLE)\n"
-               "6 - Colonne de types multiples (STRUCTURE)\n"
-               "7 - Annuler la creation de cette colonne et retourner au menu precedent\n");
-        printf("Entrez votre choix : ");
-        char choice;
-        scanf(" %c", &choice);
-        clean_stdin();  // Nettoyer le buffer après la lecture d'un caractère
-
-        switch (choice) {
-            case '1': col_type = MY_INT; break;
-            case '2': col_type = MY_FLOAT; break;
-            case '3': col_type = MY_CHAR; break;
-            case '4': col_type = STRING; break;
-            case '5': col_type = MY_DOUBLE; break;
-            case '6': col_type = STRUCTURE; printf("Bientot disponible.\n"); continue;
-            case '7': printf("Creation annulee. Retour.\n"); return;
-            default: printf("Choix invalide. Retour au menu de creation.\n"); continue;
-        }
-
-        COLUMN* new_column = create_column(col_type, name_col);
-        if (new_column == NULL) {
-            printf("Echec de la creation de la colonne '%s'.\n", name_col);
-        } else {
-            dataframe->columns[dataframe->num_columns++] = new_column;
-            printf("Colonne '%s' creee avec succes et ajoutee au dataframe.\n", name_col);
-        }
-        if ( i > 5) {  // Ask if more insertions are expected, unless it's the last one planned
-            printf("Voulez-vous continuer ? (Oui: o / Non: n): ");
-            char decision;
-            scanf(" %c", &decision);
-            getchar();  // Consume the newline character
-            if (decision == 'n' || decision == 'N') {
-                break;  // Break the loop if user decides not to continue
-            }
-        }
-        nb = i +1;
-    }
-    if (nb > 1){
-        printf("Vous avez cree %d colonnes\n",nb);
-    }
-    else{
-        printf("Vous avez cree %d colonne\n",nb);
-    }
-}
+// ================ Fonction du menu ==================
 
 const char* getTypeName(ENUM_TYPE type) {
     switch(type) {
@@ -243,6 +279,222 @@ const char* getTypeName(ENUM_TYPE type) {
         default: return "UNKNOWN";
     }
 }
+
+void rename_column_ui(CDATAFRAME *cdf) {
+    if (cdf == NULL || cdf->num_columns == 0) {
+        printf("Dataframe non initialise ou vide.\n");
+        return;
+    }
+
+    int col_index;
+    char new_name[256];
+    printf("Entrez l'indice de la colonne à renommer (0 à %d) : ", cdf->num_columns - 1);
+    scanf("%d", &col_index);
+    clean_stdin(); // Nettoyer le buffer après la lecture d'un entier
+
+    if (col_index < 0 || col_index >= cdf->num_columns) {
+        printf("Indice de colonne invalide.\n");
+        return;
+    }
+
+    printf("Entrez le nouveau nom pour la colonne : ");
+    fgets(new_name, sizeof(new_name), stdin);
+    new_name[strcspn(new_name, "\n")] = 0; // Enlever le newline à la fin
+
+    rename_column(cdf, col_index, new_name);
+    printf("Le nom de la colonne a été changé en '%s'.\n", new_name);
+}
+
+void load_dataframe(CDATAFRAME **cdf) {
+    if (*cdf == NULL) {
+        printf("Aucun dataframe à sauvegarder.\n");
+        return;
+    }
+    char file_name[256];
+    printf("Entrez le nom du fichier CSV à charger : ");
+    scanf("%s",file_name);
+    clean_stdin();  // Nettoyer le buffer après la lecture d'un entier
+    file_name[strcspn(file_name, "\n")] = 0; // Enlever le newline à la fin
+
+    // Simule les types pour chaque colonne ici, doit être dynamique selon le besoin
+    ENUM_TYPE dftype[] = {MY_INT, MY_FLOAT}; // Exemple de types
+    int num_cols = sizeof(dftype)/sizeof(dftype[0]);
+
+    *cdf = load_from_csv(file_name, dftype, num_cols);
+    if (*cdf != NULL) {
+        printf("Dataframe chargé avec succès depuis '%s'.\n", file_name);
+    } else {
+        printf("Échec du chargement du dataframe depuis '%s'.\n", file_name);
+    }
+}
+
+void save_dataframe(CDATAFRAME *cdf) {
+    if (cdf == NULL) {
+        printf("Aucun dataframe à sauvegarder.\n");
+        return;
+    }
+
+    char file_name[256];
+    printf("Entrez le nom du fichier CSV pour sauvegarder le dataframe : ");
+    scanf("%s",file_name);
+    clean_stdin();  // Nettoyer le buffer après la lecture d'un entier
+    //fgets(file_name, sizeof(file_name), stdin);
+    file_name[strcspn(file_name, "\n")] = 0; // Enlever le newline à la fin
+
+    save_into_csv(cdf, file_name);
+    printf("Dataframe sauvegardé dans '%s'.\n", file_name);
+}
+
+void create_row(CDATAFRAME *cdf) {
+    if (cdf != NULL) {
+    for (int i = 0; i < cdf->num_columns; i++) {
+        printf("Entrez une valeur pour la colonne '%s' (%s): ", cdf->columns[i]->title, getTypeName(cdf->columns[i]->column_type));
+        char input[256];
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = 0; // Enlever le newline à la fin
+        void *data = parse_data(input, cdf->columns[i]->column_type);
+        cdf->columns[i]->data[cdf->columns[i]->size++] = data;
+    }
+    printf("Nouvelle ligne ajoutée avec succès.\n");
+    }
+    else {
+        printf("Aucun dataframe à sauvegarder.\n");
+        return;
+    }
+}
+
+void create_column_LDC(CDATAFRAME *dataframe){
+        int num_columns_to_add = 0;
+        printf("Combien de colonnes souhaitez-vous creer : ");
+        scanf("%d", &num_columns_to_add);
+        clean_stdin();  // Nettoyer le buffer après la lecture d'un entier
+        printf("AZERTY");
+        if (num_columns_to_add < 1) {
+            printf("Nombre de colonnes non valide. Retour au menu precedent.\n");
+            return;
+        }
+
+        if (dataframe->num_columns + num_columns_to_add > MAX_COLUMNS) {
+            printf("Impossible de creer %d colonnes, cela depasse le maximum autorise de %d colonnes.\n", num_columns_to_add, MAX_COLUMNS);
+            return;
+        }
+        int nb;
+        for (int i = 0; i < num_columns_to_add; ++i) {
+            if (dataframe->num_columns >= MAX_COLUMNS) {
+                printf("Nombre maximum de colonnes atteint (%d colonnes).\n", MAX_COLUMNS);
+                break;
+            }
+
+            printf("\nCreation de la colonne %d...\n", i);
+            char name_col[256];
+            printf("Nommez votre colonne : ");
+
+            if (fgets(name_col, sizeof(name_col), stdin) == NULL) {
+                printf("Erreur lors de la lecture du nom de la colonne.\n");
+                continue;  // Continue avec la prochaine colonne
+            }
+
+            name_col[strcspn(name_col, "\n")] = 0;  // Supprime le newline
+            printf("Vous avez nomme votre colonne : '%s'\n", name_col);
+
+            ENUM_TYPE col_type;
+            printf("Choisissez le type de colonne que vous voulez creer :\n"
+                   "1 - Colonne d'entier (INT)\n"
+                   "2 - Colonne de reel (FLOAT)\n"
+                   "3 - Colonne de caracteres (CHAR)\n"
+                   "4 - Colonne de chaine de caracteres (STRING)\n"
+                   "5 - Colonne de reel long (DOUBLE)\n"
+                   "6 - Colonne de types multiples (STRUCTURE)\n"
+                   "7 - Annuler la creation de cette colonne et retourner au menu precedent\n");
+            printf("Entrez votre choix : ");
+            char choice;
+            scanf(" %c", &choice);
+            clean_stdin();  // Nettoyer le buffer après la lecture d'un caractère
+
+            switch (choice) {
+                case '1': col_type = MY_INT; break;
+                case '2': col_type = MY_FLOAT; break;
+                case '3': col_type = MY_CHAR; break;
+                case '4': col_type = STRING; break;
+                case '5': col_type = MY_DOUBLE; break;
+                case '6': col_type = STRUCTURE; printf("Bientot disponible.\n"); continue;
+                case '7': printf("Creation annulee. Retour.\n"); return;
+                default: printf("Choix invalide. Retour au menu de creation.\n"); continue;
+            }
+
+            COLUMN* new_column = create_column(col_type, name_col);
+            if (new_column == NULL) {
+                printf("Echec de la creation de la colonne '%s'.\n", name_col);
+            } else {
+                dataframe->columns[dataframe->num_columns++] = new_column;
+                printf("Colonne '%s' creee avec succes et ajoutee au dataframe.\n", name_col);
+            }
+            if ( i > 5) {  // Ask if more insertions are expected, unless it's the last one planned
+                printf("Voulez-vous continuer ? (Oui: o / Non: n): ");
+                char decision;
+                scanf(" %c", &decision);
+                getchar();  // Consume the newline character
+                if (decision == 'n' || decision == 'N') {
+                    break;  // Break the loop if user decides not to continue
+                }
+            }
+            nb = i +1;
+        }
+        if (nb > 1){
+            printf("Vous avez cree %d colonnes\n",nb);
+        }
+        else{
+            printf("Vous avez cree %d colonne\n",nb);
+        }
+}
+
+void clean_stdin() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) {}  // Cette boucle vide le tampon stdin.
+}
+
+void create_column_process(CDATAFRAME *dataframe) {
+    printf("Gestion du Dataframe:\n"
+           "1 - Créer une colonne\n"
+           "2 - Créer une ligne\n"
+           "3 - Renommer une colonne\n"
+           "4 - Charger un Dataframe\n"
+           "5 - Sauvegarder un Dataframe\n"
+           "6 - Retour\n");
+    int Nchoix;
+    printf("Entrer votre choix : ");
+    scanf("%d", &Nchoix);
+    //clean_stdin();
+    printf("12AZEret\n");
+    switch (Nchoix) {
+        case 1:
+            create_column_LDC(dataframe);
+            printf("\n");
+            break;
+        case 2:
+            create_row(dataframe);
+            printf("\n");
+            break;
+        case 3:
+            rename_column_ui(dataframe);
+            printf("\n");
+            break;
+        case 4:
+            load_dataframe(&dataframe);
+            printf("\n");
+            break;
+        case 5:
+            save_dataframe(dataframe);
+            printf("\n");
+            break;
+        case 6:
+            break;
+        default: printf("Choix invalide. Retour au menu de creation.\n");
+        break;
+    }
+}
+
+
 int position;
 
 void insert_value_process(CDATAFRAME *dataframe) {
@@ -396,23 +648,27 @@ void print_columns_process(CDATAFRAME *dataframe) {
         printf("Aucune colonne n'a encore ete creee.\n");
         return;
     }
-    printf("1 - Afficher une colonne\n"
-           "2 - Afficher une ligne\n"
-           "3 - Afficher le nombre de lignes\n"
-           "4 - Afficher le nombre de colonnes\n "
-           "5 - Retourner au menu precedent\n");
+    printf("1 - Afficher le CDataframe\n"
+           "2 - Afficher une colonne\n"
+           "3 - Afficher une ligne\n"
+           "4 - Afficher le nombre de lignes\n"
+           "5 - Afficher le nombre de colonnes\n "
+           "6 - Retourner au menu precedent\n");
     char option1;
     printf("Entrez votre choix : ");
     scanf(" %c", &option1);
 
     switch (option1) {
-        case '1': // Gestion de l'affichage des colonnes
+        case'1': // Gestion de l'affichage du CDataframe
+            print_multiple_cols(dataframe, 0, dataframe->num_columns - 1);
+            break;
+        case '2': // Gestion de l'affichage des colonnes
             handle_column_display(dataframe);
             break;
-        case '2': // Gestion de l'affichage des lignes
+        case '3': // Gestion de l'affichage des lignes
             handle_row_display(dataframe);
             break;
-        case'3':
+        case'4':
             if (dataframe == NULL || dataframe->columns == NULL) {
                 printf("Dataframe non initialisé ou vide.\n");
                 return;
@@ -426,14 +682,14 @@ void print_columns_process(CDATAFRAME *dataframe) {
             }
             printf("Nombre de lignes : %d\n", max_rows);
             break;
-        case'4':
+        case'5':
             if (dataframe == NULL || dataframe->columns == NULL) {
                 printf("Dataframe non initialisé ou vide.\n");
                 return;
             }
             printf("Nombre de colonnes : %d\n", dataframe->num_columns);
             break;
-        case '5':
+        case '6':
             return;
         default:
             printf("Choix non valide.\n");
@@ -497,7 +753,7 @@ void print_multiple_cols(CDATAFRAME *dataframe, int start, int end) {
 
     // Afficher les titres des colonnes
     for (int i = start; i <= end; i++) {
-        printf("Colonne %d : %-3s \t", i, dataframe->columns[i]->title); // Ajustez -20 selon la longueur maximale du titre
+        printf("Colonne %d : %-3s\t", i, dataframe->columns[i]->title); // Ajustez -20 selon la longueur maximale du titre
     }
     printf("\n");
 
@@ -507,9 +763,9 @@ void print_multiple_cols(CDATAFRAME *dataframe, int start, int end) {
             char str[20]; // Taille suffisante pour stocker la conversion de la valeur
             if (row < dataframe->columns[col]->size) {
                 convert_value(dataframe->columns[col], row, str, sizeof(str));
-                printf(" [%d] : %-7s \t\t", row, str); // Utilisez %-20 pour justifier à gauche et ajustez selon le besoin
+                printf(" [%d] : %-10s \t\t", row, str); // Utilisez %-20 pour justifier à gauche et ajustez selon le besoin
             } else {
-                printf(" [%d] : %-7s \t\t", row, "NULL");  // Afficher NULL pour les indices hors limites, avec ajustement de l'espace
+                printf(" [%d] : %-10s \t\t", row, "NULL");  // Afficher NULL pour les indices hors limites, avec ajustement de l'espace
             }
         }
         printf("\n");
